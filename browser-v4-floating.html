@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web浏览器下载器 v4.0 - 浮动工具栏</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .url-input:focus {
+            border-color: #007acc;
+        }
+        
+        .btn {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            background: #005a9e;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .status-bar {
+            background: #e9ecef;
+            padding: 8px 16px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .welcome-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .floating-toolbar-demo {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .demo-toolbar {
+            position: relative;
+            background: linear-gradient(135deg, #007acc, #0056b3);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,123,204,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .demo-toolbar::before {
+            content: "💡 这是浮动工具栏预览";
+            position: absolute;
+            top: -30px;
+            left: 0;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .toolbar-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 10000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <input 
+            type="url" 
+            class="url-input" 
+            id="urlInput"
+            placeholder="输入网址 (例如: google.com, github.com)"
+            list="url-suggestions"
+        >
+        <datalist id="url-suggestions">
+            <option value="https://www.google.com">
+            <option value="https://www.github.com">
+            <option value="https://www.example.com">
+            <option value="https://httpbin.org">
+            <option value="https://jsonplaceholder.typicode.com">
+            <option value="https://www.baidu.com">
+            <option value="https://www.youtube.com">
+            <option value="https://www.bilibili.com">
+        </datalist>
+        <button class="btn" id="goBtn">访问并注入工具栏</button>
+        <button class="btn btn-secondary" id="newTabBtn">仅新标签页</button>
+    </div>
+    
+    <div class="status-bar">
+        <span id="statusText">就绪</span>
+        <span>v4.0.0 - 浮动工具栏模式</span>
+    </div>
+    
+    <div class="main-content">
+        <div class="welcome-card">
+            <h1>🛠️ Web浏览器下载器 v4.0</h1>
+            <p><strong>浮动工具栏模式</strong> - 在新窗口中注入下载工具栏</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>浮动工具栏</h3>
+                    <p>在目标网站上显示下载按钮</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <h3>智能检测</h3>
+                    <p>自动检测页面中的媒体文件</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📥</div>
+                    <h3>一键下载</h3>
+                    <p>直接在目标页面下载内容</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>跨站支持</h3>
+                    <p>支持所有允许脚本注入的网站</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="floating-toolbar-demo">
+        <h3>🎯 浮动工具栏预览</h3>
+        <p>当你访问网站时，会在页面上显示这样的工具栏：</p>
+        
+        <div class="demo-toolbar">
+            <span>🌐 Web下载器</span>
+            <button class="toolbar-btn">🎵 音视频 (3)</button>
+            <button class="toolbar-btn">📝 文本</button>
+            <button class="toolbar-btn">📄 PDF (1)</button>
+            <button class="toolbar-btn">❌</button>
+        </div>
+        
+        <h4>工作原理：</h4>
+        <ol>
+            <li>点击"访问并注入工具栏"按钮</li>
+            <li>在新窗口打开目标网站</li>
+            <li>自动注入浮动工具栏到页面</li>
+            <li>工具栏检测页面中的可下载内容</li>
+            <li>点击相应按钮即可下载</li>
+        </ol>
+        
+        <h4>注入的JavaScript代码：</h4>
+        <div class="code-block">
+// 创建浮动工具栏
+const toolbar = document.createElement('div');
+toolbar.innerHTML = `
+  &lt;div style="position:fixed;top:20px;right:20px;z-index:99999;"&gt;
+    &lt;button onclick="downloadMedia()"&gt;🎵 下载媒体&lt;/button&gt;
+    &lt;button onclick="downloadText()"&gt;📝 下载文本&lt;/button&gt;
+  &lt;/div&gt;
+`;
+document.body.appendChild(toolbar);
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        class FloatingToolbarBrowser {
+            constructor() {
+                this.urlInput = document.getElementById('urlInput');
+                this.goBtn = document.getElementById('goBtn');
+                this.newTabBtn = document.getElementById('newTabBtn');
+                this.statusText = document.getElementById('statusText');
+                this.notification = document.getElementById('notification');
+                
+                this.init();
+            }
+            
+            init() {
+                this.goBtn.addEventListener('click', () => this.handleGoWithToolbar());
+                this.newTabBtn.addEventListener('click', () => this.handleNewTab());
+                this.urlInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleGoWithToolbar();
+                    }
+                });
+                
+                this.updateStatus('就绪');
+            }
+            
+            handleGoWithToolbar() {
+                const url = this.urlInput.value.trim();
+                if (!url) {
+                    this.showNotification('请输入网址', 'error');
+                    return;
+                }
+                
+                const finalUrl = this.smartUrlCompletion(url);
+                this.openWithToolbar(finalUrl);
+            }
+            
+            handleNewTab() {
+                const url = this.urlInput.value.trim();
+                if (!url) {
+                    this.showNotification('请输入网址', 'error');
+                    return;
+                }
+                
+                const finalUrl = this.smartUrlCompletion(url);
+                window.open(finalUrl, '_blank');
+                this.showNotification('已在新标签页打开', 'success');
+            }
+            
+            openWithToolbar(url) {
+                try {
+                    new URL(url);
+                    
+                    this.updateStatus('正在打开并注入工具栏...');
+                    
+                    // 打开新窗口
+                    const newWindow = window.open(url, '_blank');
+                    
+                    if (newWindow) {
+                        // 等待页面加载后注入工具栏
+                        setTimeout(() => {
+                            this.injectToolbar(newWindow, url);
+                        }, 3000);
+                        
+                        this.showNotification('已打开网站，正在注入工具栏...', 'success');
+                    } else {
+                        this.showNotification('弹窗被阻止，请允许弹窗后重试', 'warning');
+                    }
+                    
+                    setTimeout(() => {
+                        this.updateStatus('就绪');
+                    }, 3000);
+                    
+                } catch (error) {
+                    this.showNotification('无效的网址格式', 'error');
+                    this.updateStatus('就绪');
+                }
+            }
+            
+            injectToolbar(targetWindow, url) {
+                try {
+                    // 检查是否可以访问目标窗口
+                    if (!targetWindow || targetWindow.closed) {
+                        this.showNotification('目标窗口已关闭', 'error');
+                        return;
+                    }
+                    
+                    // 由于同源策略限制，我们无法直接注入到跨域页面
+                    // 这里提供一个书签工具的方案
+                    this.showBookmarkletInstructions(url);
+                    
+                } catch (error) {
+                    console.error('注入失败:', error);
+                    this.showBookmarkletInstructions(url);
+                }
+            }
+            
+            showBookmarkletInstructions(url) {
+                // 创建书签工具说明
+                const bookmarklet = this.generateBookmarklet();
+                
+                const instructionWindow = window.open('', '_blank', 'width=600,height=400');
+                instructionWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>浮动工具栏使用说明</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+                            .bookmarklet { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; }
+                            .bookmarklet a { color: #007acc; text-decoration: none; font-weight: bold; }
+                            .step { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 6px; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>🛠️ 浮动工具栏使用说明</h2>
+                        <p>由于浏览器安全限制，无法直接注入工具栏。请使用以下书签工具：</p>
+                        
+                        <div class="step">
+                            <strong>步骤1:</strong> 将下面的链接拖拽到浏览器书签栏
+                        </div>
+                        
+                        <div class="bookmarklet">
+                            <a href="${bookmarklet}">📥 Web下载器工具栏</a>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>步骤2:</strong> 在任何网页上点击这个书签
+                        </div>
+                        
+                        <div class="step">
+                            <strong>步骤3:</strong> 工具栏会出现在页面右上角
+                        </div>
+                        
+                        <p><strong>目标网站:</strong> ${url}</p>
+                        <p><a href="${url}" target="_blank">点击这里打开目标网站</a></p>
+                        
+                        <script>
+                            setTimeout(() => {
+                                if (confirm('是否现在打开目标网站？')) {
+                                    window.open('${url}', '_blank');
+                                }
+                            }, 2000);
+                        </script>
+                    </body>
+                    </html>
+                `);
+            }
+            
+            generateBookmarklet() {
+                const toolbarCode = `
+                (function() {
+                    // 检查是否已经存在工具栏
+                    if (document.getElementById('web-downloader-toolbar')) {
+                        return;
+                    }
+                    
+                    // 创建工具栏样式
+                    const style = document.createElement('style');
+                    style.textContent = \`
+                        #web-downloader-toolbar {
+                            position: fixed !important;
+                            top: 20px !important;
+                            right: 20px !important;
+                            z-index: 999999 !important;
+                            background: linear-gradient(135deg, #007acc, #0056b3) !important;
+                            color: white !important;
+                            padding: 12px 16px !important;
+                            border-radius: 8px !important;
+                            box-shadow: 0 4px 12px rgba(0,123,204,0.3) !important;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                            font-size: 14px !important;
+                            display: flex !important;
+                            align-items: center !important;
+                            gap: 8px !important;
+                        }
+                        .wd-btn {
+                            background: rgba(255,255,255,0.2) !important;
+                            color: white !important;
+                            border: none !important;
+                            padding: 6px 10px !important;
+                            border-radius: 4px !important;
+                            cursor: pointer !important;
+                            font-size: 12px !important;
+                            transition: background 0.2s !important;
+                        }
+                        .wd-btn:hover {
+                            background: rgba(255,255,255,0.3) !important;
+                        }
+                    \`;
+                    document.head.appendChild(style);
+                    
+                    // 创建工具栏
+                    const toolbar = document.createElement('div');
+                    toolbar.id = 'web-downloader-toolbar';
+                    
+                    // 检测页面内容
+                    const mediaCount = document.querySelectorAll('video, audio').length;
+                    const pdfCount = document.querySelectorAll('a[href$=".pdf"]').length;
+                    
+                    toolbar.innerHTML = \`
+                        <span>🌐 Web下载器</span>
+                        <button class="wd-btn" onclick="downloadMedia()">🎵 媒体 (\${mediaCount})</button>
+                        <button class="wd-btn" onclick="downloadText()">📝 文本</button>
+                        <button class="wd-btn" onclick="downloadPDF()">📄 PDF (\${pdfCount})</button>
+                        <button class="wd-btn" onclick="closeToolbar()">❌</button>
+                    \`;
+                    
+                    document.body.appendChild(toolbar);
+                    
+                    // 下载功能
+                    window.downloadMedia = function() {
+                        const media = document.querySelectorAll('video, audio');
+                        if (media.length === 0) {
+                            alert('未找到媒体文件');
+                            return;
+                        }
+                        media.forEach((el, i) => {
+                            if (el.src) {
+                                const a = document.createElement('a');
+                                a.href = el.src;
+                                a.download = \`media_\${i+1}\`;
+                                a.click();
+                            }
+                        });
+                    };
+                    
+                    window.downloadText = function() {
+                        const text = document.body.innerText;
+                        const blob = new Blob([text], {type: 'text/plain'});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = document.title + '.txt';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    };
+                    
+                    window.downloadPDF = function() {
+                        const pdfs = document.querySelectorAll('a[href$=".pdf"]');
+                        if (pdfs.length === 0) {
+                            alert('未找到PDF文件');
+                            return;
+                        }
+                        pdfs.forEach(pdf => {
+                            window.open(pdf.href, '_blank');
+                        });
+                    };
+                    
+                    window.closeToolbar = function() {
+                        const toolbar = document.getElementById('web-downloader-toolbar');
+                        if (toolbar) {
+                            toolbar.remove();
+                        }
+                    };
+                    
+                    // 显示成功消息
+                    alert('🎉 Web下载器工具栏已加载！');
+                })();
+                `;
+                
+                return 'javascript:' + encodeURIComponent(toolbarCode);
+            }
+            
+            smartUrlCompletion(input) {
+                let url = input.trim();
+                
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
+                }
+                
+                if (url.includes('://')) {
+                    return url;
+                }
+                
+                if (url.startsWith('localhost') || 
+                    url.match(/^\d+\.\d+\.\d+\.\d+/) ||
+                    url.startsWith('127.') ||
+                    url.startsWith('192.168.') ||
+                    url.startsWith('10.')) {
+                    return 'http://' + url;
+                }
+                
+                if (!url.includes('.')) {
+                    url = 'www.' + url + '.com';
+                }
+                
+                if (!url.startsWith('www.') && 
+                    (url.includes('.com') || url.includes('.org') || url.includes('.net') || 
+                     url.includes('.edu') || url.includes('.gov') || url.includes('.cn'))) {
+                    const parts = url.split('.');
+                    if (parts.length === 2) {
+                        url = 'www.' + url;
+                    }
+                }
+                
+                return 'https://' + url;
+            }
+            
+            updateStatus(status) {
+                this.statusText.textContent = status;
+            }
+            
+            showNotification(message, type = 'success') {
+                this.notification.textContent = message;
+                this.notification.className = \`notification \${type} show\`;
+                
+                setTimeout(() => {
+                    this.notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // 初始化
+        const browser = new FloatingToolbarBrowser();
+    </script>
+</body>
+</html>

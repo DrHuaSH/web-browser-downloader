@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web下载器 - 书签工具版</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .bookmarklet-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .bookmarklet-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #007acc, #0056b3);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(0,123,204,0.3);
+            transition: transform 0.2s;
+        }
+        
+        .bookmarklet-link:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .step {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        
+        .step-number {
+            background: #007acc;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .demo-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .demo-toolbar {
+            background: linear-gradient(135deg, #007acc, #0056b3);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,123,204,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .demo-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .demo-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .test-sites {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .site-link {
+            display: inline-block;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #007acc;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        
+        .site-link:hover {
+            background: #e3f2fd;
+            border-color: #007acc;
+            color: #005a9e;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📥 Web下载器 - 书签工具版</h1>
+        <p>在任何网站上一键添加下载功能！</p>
+    </div>
+    
+    <div class="bookmarklet-section">
+        <h2>🔖 安装书签工具</h2>
+        <p>将下面的链接拖拽到浏览器书签栏，或者右键添加到书签：</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="javascript:(function(){if(document.getElementById('web-downloader-toolbar')){return;}const style=document.createElement('style');style.textContent=`#web-downloader-toolbar{position:fixed!important;top:20px!important;right:20px!important;z-index:999999!important;background:linear-gradient(135deg,#007acc,#0056b3)!important;color:white!important;padding:12px 16px!important;border-radius:8px!important;box-shadow:0 4px 12px rgba(0,123,204,0.3)!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif!important;font-size:14px!important;display:flex!important;align-items:center!important;gap:8px!important;}.wd-btn{background:rgba(255,255,255,0.2)!important;color:white!important;border:none!important;padding:6px 10px!important;border-radius:4px!important;cursor:pointer!important;font-size:12px!important;transition:background 0.2s!important;}.wd-btn:hover{background:rgba(255,255,255,0.3)!important;}`;document.head.appendChild(style);const toolbar=document.createElement('div');toolbar.id='web-downloader-toolbar';const mediaCount=document.querySelectorAll('video,audio').length;const pdfCount=document.querySelectorAll('a[href$=\".pdf\"]').length;const imgCount=document.querySelectorAll('img').length;toolbar.innerHTML=`<span>📥 Web下载器</span><button class=\"wd-btn\" onclick=\"downloadMedia()\">🎵 媒体(${mediaCount})</button><button class=\"wd-btn\" onclick=\"downloadImages()\">🖼️ 图片(${imgCount})</button><button class=\"wd-btn\" onclick=\"downloadText()\">📝 文本</button><button class=\"wd-btn\" onclick=\"downloadPDF()\">📄 PDF(${pdfCount})</button><button class=\"wd-btn\" onclick=\"closeToolbar()\">❌</button>`;document.body.appendChild(toolbar);window.downloadMedia=function(){const media=document.querySelectorAll('video,audio');if(media.length===0){alert('未找到媒体文件');return;}let downloaded=0;media.forEach((el,i)=>{if(el.src){const a=document.createElement('a');a.href=el.src;a.download=`media_${i+1}`;document.body.appendChild(a);a.click();document.body.removeChild(a);downloaded++;}});alert(`已尝试下载 ${downloaded} 个媒体文件`);};window.downloadImages=function(){const images=document.querySelectorAll('img');if(images.length===0){alert('未找到图片');return;}let downloaded=0;images.forEach((img,i)=>{if(img.src&&!img.src.startsWith('data:')){const a=document.createElement('a');a.href=img.src;a.download=`image_${i+1}`;document.body.appendChild(a);a.click();document.body.removeChild(a);downloaded++;}});alert(`已尝试下载 ${downloaded} 张图片`);};window.downloadText=function(){const title=document.title||'webpage';const text=document.body.innerText;const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=title+'.txt';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);alert('页面文本已下载');};window.downloadPDF=function(){const pdfs=document.querySelectorAll('a[href$=\".pdf\"]');if(pdfs.length===0){alert('未找到PDF文件');return;}pdfs.forEach(pdf=>{window.open(pdf.href,'_blank');});alert(`已打开 ${pdfs.length} 个PDF文件`);};window.closeToolbar=function(){const toolbar=document.getElementById('web-downloader-toolbar');if(toolbar){toolbar.remove();}};alert('🎉 Web下载器工具栏已加载！\\n\\n功能说明：\\n🎵 媒体 - 下载视频和音频\\n🖼️ 图片 - 下载页面图片\\n📝 文本 - 下载页面文本\\n📄 PDF - 打开PDF链接');})();" 
+               class="bookmarklet-link">
+                📥 Web下载器工具栏
+            </a>
+        </div>
+        
+        <div class="warning">
+            <strong>💡 安装提示：</strong>
+            <ul>
+                <li>电脑：直接拖拽到书签栏</li>
+                <li>手机：长按链接选择"添加到书签"</li>
+                <li>如果拖拽不成功，可以右键选择"添加到书签"</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>🎯 使用方法</h2>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>安装书签：</strong>将上面的"Web下载器工具栏"拖拽到浏览器书签栏
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>访问网站：</strong>打开任何你想下载内容的网站
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>激活工具：</strong>点击书签栏中的"Web下载器工具栏"
+        </div>
+        
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>开始下载：</strong>工具栏会出现在页面右上角，点击相应按钮下载
+        </div>
+        
+        <h3>🛠️ 工具栏预览：</h3>
+        <div class="demo-toolbar">
+            <span>📥 Web下载器</span>
+            <button class="demo-btn">🎵 媒体 (2)</button>
+            <button class="demo-btn">🖼️ 图片 (15)</button>
+            <button class="demo-btn">📝 文本</button>
+            <button class="demo-btn">📄 PDF (1)</button>
+            <button class="demo-btn">❌</button>
+        </div>
+    </div>
+    
+    <div class="test-sites">
+        <h2>🧪 测试网站</h2>
+        <p>安装书签后，可以在这些网站上测试下载功能：</p>
+        
+        <h3>📺 视频网站：</h3>
+        <a href="https://www.youtube.com" target="_blank" class="site-link">YouTube</a>
+        <a href="https://www.bilibili.com" target="_blank" class="site-link">Bilibili</a>
+        <a href="https://vimeo.com" target="_blank" class="site-link">Vimeo</a>
+        
+        <h3>🖼️ 图片网站：</h3>
+        <a href="https://unsplash.com" target="_blank" class="site-link">Unsplash</a>
+        <a href="https://pixabay.com" target="_blank" class="site-link">Pixabay</a>
+        <a href="https://www.pexels.com" target="_blank" class="site-link">Pexels</a>
+        
+        <h3>📄 文档网站：</h3>
+        <a href="https://www.wikipedia.org" target="_blank" class="site-link">Wikipedia</a>
+        <a href="https://developer.mozilla.org" target="_blank" class="site-link">MDN Docs</a>
+        <a href="https://github.com" target="_blank" class="site-link">GitHub</a>
+        
+        <div class="success">
+            <strong>✅ 优势：</strong>
+            <ul>
+                <li>适用于所有网站（无iframe限制）</li>
+                <li>一次安装，永久使用</li>
+                <li>自动检测页面内容</li>
+                <li>支持批量下载</li>
+                <li>无需额外软件</li>
+            </ul>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ 注意事项：</strong>
+            <ul>
+                <li>某些网站可能有下载限制</li>
+                <li>大文件下载可能需要时间</li>
+                <li>请遵守网站的使用条款</li>
+                <li>部分动态加载的内容可能检测不到</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin: 40px 0; padding: 20px; background: white; border-radius: 8px;">
+        <h3>🎉 开始使用</h3>
+        <p>现在就安装书签工具，在任何网站上享受一键下载的便利！</p>
+        <a href="#" onclick="window.scrollTo(0,0)" style="color: #007acc; text-decoration: none;">
+            ⬆️ 返回顶部安装书签
+        </a>
+    </div>
+</body>
+</html>
