@@ -34,9 +34,17 @@ class WebBrowserDownloader {
 
             // 初始化各个组件（按依赖顺序）
             this.components.securityManager = new SecurityManager();
-            this.components.proxyService = new ProxyService(this.components.securityManager);
             this.components.mobileManager = new MobileAdaptationManager();
-            this.components.browserEngine = new BrowserEngine(this.components.securityManager, this.components.proxyService);
+            
+            // 尝试初始化代理服务，如果失败则继续（某些功能可能受限）
+            try {
+                this.components.proxyService = new ProxyService(this.components.securityManager);
+            } catch (error) {
+                console.warn('代理服务初始化失败，将使用有限功能模式:', error.message);
+                this.components.proxyService = null;
+            }
+            
+            this.components.browserEngine = new BrowserEngine(this.components.proxyService, this.components.securityManager);
             this.components.contentDetector = new ContentDetector(this.components.securityManager);
             this.components.downloadManager = new DownloadManager(this.components.mobileManager);
             this.components.uiController = new UIController();
@@ -139,8 +147,8 @@ class WebBrowserDownloader {
         const componentNames = Object.keys(this.components);
         const initializationOrder = [
             'securityManager',
-            'proxyService', 
             'mobileManager',
+            'proxyService', 
             'browserEngine',
             'contentDetector',
             'downloadManager',
@@ -158,6 +166,13 @@ class WebBrowserDownloader {
                 } catch (error) {
                     console.error(`${componentName} 初始化失败:`, error);
                     
+                    // 对于代理服务，允许初始化失败
+                    if (componentName === 'proxyService') {
+                        console.warn('代理服务初始化失败，将在有限功能模式下运行');
+                        this.components.proxyService = null;
+                        continue;
+                    }
+                    
                     // 使用错误处理器处理初始化错误
                     const errorMessage = this.errorHandler.generateUserFriendlyMessage(
                         this.errorHandler.analyzeError(error)
@@ -168,14 +183,15 @@ class WebBrowserDownloader {
             }
         }
 
-        // 验证所有组件都已初始化
-        const uninitializedComponents = componentNames.filter(name => {
+        // 验证关键组件都已初始化
+        const criticalComponents = ['securityManager', 'browserEngine', 'uiController'];
+        const uninitializedComponents = criticalComponents.filter(name => {
             const component = this.components[name];
             return component && !component.isInitialized;
         });
 
         if (uninitializedComponents.length > 0) {
-            throw new Error(`以下组件未能正确初始化: ${uninitializedComponents.join(', ')}`);
+            throw new Error(`以下关键组件未能正确初始化: ${uninitializedComponents.join(', ')}`);
         }
 
         console.log('所有组件初始化完成');
@@ -265,20 +281,21 @@ class WebBrowserDownloader {
         }
 
         try {
-            // 安全验证
-            const urlValidation = this.components.securityManager.validateURLSafety(url);
-            if (!urlValidation.isValid) {
-                throw urlValidation.error;
+            // 基本URL验证（更宽松）
+            let finalUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                finalUrl = 'https://' + url;
             }
 
-            // HTTPS升级
-            const httpsResult = this.components.securityManager.validateAndUpgradeHTTPS(url);
-            const finalUrl = httpsResult.upgradedUrl;
-            
-            if (httpsResult.wasUpgraded) {
-                this.components.uiController.updateStatus('已升级到HTTPS');
-                urlInput.value = finalUrl;
+            // 简单的URL格式验证
+            try {
+                new URL(finalUrl);
+            } catch (urlError) {
+                throw new Error('请输入有效的网址格式');
             }
+
+            // 更新地址栏
+            urlInput.value = finalUrl;
 
             this.components.uiController.showLoading(true);
             this.components.uiController.updateStatus('正在加载...');

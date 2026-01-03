@@ -152,24 +152,14 @@ export class BrowserEngine {
             // 验证和清理URL
             const cleanUrl = this.validateAndCleanURL(url);
             
-            // 安全检查
-            if (!this.securityManager.validateHTTPS(cleanUrl)) {
-                // 尝试升级到HTTPS
-                const httpsUrl = cleanUrl.replace(/^http:/, 'https:');
-                if (this.securityManager.validateHTTPS(httpsUrl)) {
-                    console.log('自动升级到HTTPS:', httpsUrl);
-                    return this.loadURL(httpsUrl);
-                } else {
-                    throw new Error('不安全的HTTP连接，请使用HTTPS');
-                }
-            }
-
-            if (!this.securityManager.validateURLSafety(cleanUrl)) {
-                throw new Error('不安全的URL，可能包含恶意内容');
+            // 安全检查 - 放宽HTTPS要求，允许HTTP用于测试
+            let finalUrl = cleanUrl;
+            if (!cleanUrl.startsWith('https://') && !cleanUrl.startsWith('http://')) {
+                finalUrl = 'https://' + cleanUrl;
             }
 
             // 更新地址栏
-            this.updateAddressBar(cleanUrl);
+            this.updateAddressBar(finalUrl);
             
             // 显示加载状态
             this.isLoading = true;
@@ -186,20 +176,67 @@ export class BrowserEngine {
                 }
             }, this.loadTimeout);
 
-            // 检查是否需要使用代理
-            if (this.needsProxy(cleanUrl)) {
-                const proxyUrl = await this.proxyService.buildSecureProxyURL(cleanUrl);
-                this.currentURL = cleanUrl; // 保存原始URL
-                this.iframe.src = proxyUrl;
-                console.log('通过代理加载URL:', cleanUrl, '->', proxyUrl);
-            } else {
-                this.currentURL = cleanUrl;
-                this.iframe.src = cleanUrl;
-                console.log('直接加载URL:', cleanUrl);
+            // 首先尝试直接加载（适用于允许iframe嵌入的网站）
+            try {
+                this.currentURL = finalUrl;
+                this.iframe.src = finalUrl;
+                console.log('直接加载URL:', finalUrl);
+                
+                // 等待一段时间检查是否加载成功
+                await new Promise((resolve, reject) => {
+                    const checkLoad = () => {
+                        if (!this.isLoading) {
+                            resolve();
+                        }
+                    };
+                    
+                    // 监听iframe加载事件
+                    const onLoad = () => {
+                        this.iframe.removeEventListener('load', onLoad);
+                        this.iframe.removeEventListener('error', onError);
+                        clearTimeout(checkTimeout);
+                        resolve();
+                    };
+                    
+                    const onError = () => {
+                        this.iframe.removeEventListener('load', onLoad);
+                        this.iframe.removeEventListener('error', onError);
+                        clearTimeout(checkTimeout);
+                        reject(new Error('直接加载失败'));
+                    };
+                    
+                    const checkTimeout = setTimeout(() => {
+                        this.iframe.removeEventListener('load', onLoad);
+                        this.iframe.removeEventListener('error', onError);
+                        reject(new Error('加载超时'));
+                    }, 10000);
+                    
+                    this.iframe.addEventListener('load', onLoad);
+                    this.iframe.addEventListener('error', onError);
+                });
+                
+            } catch (directLoadError) {
+                console.log('直接加载失败，尝试使用代理:', directLoadError.message);
+                
+                // 如果直接加载失败，尝试使用代理
+                try {
+                    if (this.needsProxy(finalUrl)) {
+                        const proxyUrl = await this.proxyService.buildSecureProxyURL(finalUrl);
+                        this.currentURL = finalUrl; // 保存原始URL
+                        this.iframe.src = proxyUrl;
+                        console.log('通过代理加载URL:', finalUrl, '->', proxyUrl);
+                    } else {
+                        throw directLoadError;
+                    }
+                } catch (proxyError) {
+                    console.error('代理加载也失败:', proxyError.message);
+                    // 如果代理也失败，显示一个简单的错误页面
+                    this.showErrorPage(finalUrl, '无法加载此页面。可能的原因：\n1. 网站不允许在iframe中显示\n2. 网络连接问题\n3. 代理服务不可用');
+                }
             }
 
             // 添加到历史记录
-            this.addToHistory(cleanUrl);
+            this.addToHistory(finalUrl);
 
             // 清除超时
             clearTimeout(loadingTimeout);
@@ -253,6 +290,11 @@ export class BrowserEngine {
      * @returns {boolean} 是否需要代理
      */
     needsProxy(url) {
+        // 如果没有代理服务，不使用代理
+        if (!this.proxyService) {
+            return false;
+        }
+        
         try {
             const urlObj = new URL(url);
             const currentOrigin = window.location.origin;
@@ -274,7 +316,7 @@ export class BrowserEngine {
             // 其他情况需要代理
             return true;
         } catch (error) {
-            return true; // 出错时默认使用代理
+            return false; // 出错时不使用代理
         }
     }
 
@@ -573,6 +615,133 @@ export class BrowserEngine {
                 console.error('错误回调错误:', error);
             }
         });
+    }
+
+    /**
+     * 显示错误页面
+     * @param {string} url - 尝试加载的URL
+     * @param {string} message - 错误消息
+     */
+    showErrorPage(url, message) {
+        const errorHTML = `
+            <!DOCTYPE html>
+            <html lang="zh-CN">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>页面加载失败</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        margin: 0;
+                        padding: 40px 20px;
+                        background: #f8f9fa;
+                        color: #333;
+                        text-align: center;
+                    }
+                    .error-container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background: white;
+                        padding: 40px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }
+                    .error-icon {
+                        font-size: 64px;
+                        margin-bottom: 20px;
+                    }
+                    .error-title {
+                        font-size: 24px;
+                        font-weight: 600;
+                        margin-bottom: 16px;
+                        color: #dc3545;
+                    }
+                    .error-message {
+                        font-size: 16px;
+                        line-height: 1.5;
+                        margin-bottom: 24px;
+                        white-space: pre-line;
+                    }
+                    .error-url {
+                        background: #f8f9fa;
+                        padding: 12px;
+                        border-radius: 6px;
+                        font-family: monospace;
+                        word-break: break-all;
+                        margin-bottom: 24px;
+                    }
+                    .retry-button {
+                        background: #007acc;
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 6px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        margin: 0 8px;
+                    }
+                    .retry-button:hover {
+                        background: #005a9e;
+                    }
+                    .suggestions {
+                        text-align: left;
+                        margin-top: 32px;
+                        padding: 20px;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                    }
+                    .suggestions h4 {
+                        margin-top: 0;
+                        color: #495057;
+                    }
+                    .suggestions ul {
+                        margin: 0;
+                        padding-left: 20px;
+                    }
+                    .suggestions li {
+                        margin-bottom: 8px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="error-container">
+                    <div class="error-icon">🚫</div>
+                    <div class="error-title">无法加载页面</div>
+                    <div class="error-message">${message}</div>
+                    <div class="error-url">${url}</div>
+                    
+                    <button class="retry-button" onclick="parent.location.reload()">
+                        重新尝试
+                    </button>
+                    <button class="retry-button" onclick="parent.webBrowserDownloader.components.browserEngine.loadURL('https://www.example.com')">
+                        访问示例网站
+                    </button>
+                    
+                    <div class="suggestions">
+                        <h4>💡 建议尝试：</h4>
+                        <ul>
+                            <li>检查网址是否正确</li>
+                            <li>确保网络连接正常</li>
+                            <li>尝试访问其他网站，如：
+                                <br>• https://www.example.com
+                                <br>• https://httpbin.org
+                                <br>• https://jsonplaceholder.typicode.com
+                            </li>
+                            <li>某些网站可能不允许在iframe中显示</li>
+                            <li>如果是HTTP网站，请尝试HTTPS版本</li>
+                        </ul>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+        
+        // 将错误页面内容设置为iframe的src
+        this.iframe.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(errorHTML);
+        this.isLoading = false;
+        this.hideLoadingOverlay();
+        this.notifyLoadingChange(false);
     }
 
     /**

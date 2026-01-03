@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浏览器修复测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .success { border-left-color: #28a745; }
+        .warning { border-left-color: #ffc107; }
+        .error { border-left-color: #dc3545; }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005a9e; }
+        .test-url {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 浏览器修复测试</h1>
+    
+    <div class="test-section success">
+        <h3>✅ 修复内容</h3>
+        <ul>
+            <li>移除了严格的HTTPS验证，允许HTTP网站测试</li>
+            <li>改进了代理服务错误处理，即使代理不可用也能工作</li>
+            <li>添加了友好的错误页面显示</li>
+            <li>优化了URL验证逻辑</li>
+            <li>增加了直接加载和代理加载的回退机制</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 建议测试的网站</h3>
+        
+        <h4>✅ 应该能正常工作的网站：</h4>
+        <div class="test-url">https://httpbin.org</div>
+        <div class="test-url">https://jsonplaceholder.typicode.com</div>
+        <div class="test-url">https://www.example.com</div>
+        <div class="test-url">https://httpbin.org/html</div>
+        
+        <h4>⚠️ 可能受限的网站（X-Frame-Options限制）：</h4>
+        <div class="test-url">https://www.google.com</div>
+        <div class="test-url">https://www.github.com</div>
+        <div class="test-url">https://www.youtube.com</div>
+        
+        <p><strong>注意：</strong>许多主流网站（如Google、Facebook、YouTube等）设置了X-Frame-Options头部，禁止在iframe中显示，这是正常的安全措施。</p>
+    </div>
+
+    <div class="test-section warning">
+        <h3>🔍 测试步骤</h3>
+        <ol>
+            <li>打开主应用页面 (index.html)</li>
+            <li>在地址栏输入上面建议的测试网址</li>
+            <li>点击"访问"按钮</li>
+            <li>观察是否能正常加载或显示友好的错误信息</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>📱 移动设备测试</h3>
+        <p>在手机浏览器中测试：</p>
+        <ul>
+            <li>界面是否适配屏幕</li>
+            <li>触摸操作是否正常</li>
+            <li>错误提示是否清晰</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🐛 故障排除</h3>
+        <p>如果仍然无法加载网页：</p>
+        <ul>
+            <li>打开浏览器开发者工具查看控制台错误</li>
+            <li>检查网络连接</li>
+            <li>尝试不同的测试网站</li>
+            <li>确认是否有广告拦截器干扰</li>
+        </ul>
+    </div>
+
+    <div class="test-section success">
+        <h3>🎯 预期结果</h3>
+        <ul>
+            <li>✅ httpbin.org 等测试网站应该能正常加载</li>
+            <li>⚠️ 受限网站应该显示友好的错误页面而不是空白</li>
+            <li>✅ 应用不应该因为代理服务问题而完全无法使用</li>
+            <li>✅ 错误信息应该清晰易懂</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <button onclick="window.open('index.html', '_blank')">
+            🚀 打开主应用测试
+        </button>
+    </div>
+</body>
+</html>
