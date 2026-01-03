@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Pages 部署测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-item {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        .warning { border-left-color: #ffc107; }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005a9e; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 GitHub Pages 部署测试</h1>
+    
+    <div class="test-item">
+        <h3>📋 部署检查清单</h3>
+        <p>在部署到GitHub Pages之前，请确认以下项目：</p>
+        <ul>
+            <li>✅ 所有文件路径使用相对路径</li>
+            <li>✅ JavaScript模块正确加载</li>
+            <li>✅ CSS样式文件正确引用</li>
+            <li>✅ 图标和资源文件可访问</li>
+            <li>✅ 移动设备适配正常</li>
+        </ul>
+    </div>
+
+    <div class="test-item">
+        <h3>🔧 快速功能测试</h3>
+        <button onclick="testModuleLoading()">测试模块加载</button>
+        <button onclick="testUIElements()">测试UI元素</button>
+        <button onclick="testMobileFeatures()">测试移动功能</button>
+        <button onclick="runAllTests()">运行全部测试</button>
+    </div>
+
+    <div id="results"></div>
+
+    <div class="test-item">
+        <h3>📱 移动设备测试提示</h3>
+        <p>在手机上测试时，请注意：</p>
+        <ul>
+            <li>触摸操作是否响应正常</li>
+            <li>界面是否适配屏幕尺寸</li>
+            <li>下载功能是否正常工作</li>
+            <li>错误提示是否清晰可见</li>
+        </ul>
+    </div>
+
+    <div class="test-item">
+        <h3>🌐 GitHub Pages 部署后验证</h3>
+        <p>部署完成后，请在以下地址测试：</p>
+        <p><strong>https://DrHua.github.io/web-browser-downloader</strong></p>
+        <p>测试项目：</p>
+        <ul>
+            <li>页面是否正常加载</li>
+            <li>所有按钮是否可点击</li>
+            <li>地址栏输入是否正常</li>
+            <li>下载功能是否工作</li>
+        </ul>
+    </div>
+
+    <script>
+        function addResult(message, type = 'success') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-item ${type}`;
+            div.innerHTML = `<p>${message}</p>`;
+            results.appendChild(div);
+        }
+
+        function testModuleLoading() {
+            try {
+                // 检查主要的JavaScript文件是否存在
+                fetch('./js/main.js')
+                    .then(response => {
+                        if (response.ok) {
+                            addResult('✅ 主JavaScript模块加载正常', 'success');
+                        } else {
+                            addResult('❌ 主JavaScript模块加载失败', 'error');
+                        }
+                    })
+                    .catch(() => {
+                        addResult('❌ 无法访问JavaScript模块', 'error');
+                    });
+            } catch (error) {
+                addResult('❌ 模块测试出错: ' + error.message, 'error');
+            }
+        }
+
+        function testUIElements() {
+            const elements = [
+                'url-input',
+                'go-btn',
+                'media-download-btn',
+                'text-download-btn',
+                'pdf-download-btn'
+            ];
+
+            let found = 0;
+            elements.forEach(id => {
+                if (document.getElementById(id)) {
+                    found++;
+                }
+            });
+
+            if (found === elements.length) {
+                addResult(`✅ 所有UI元素 (${found}/${elements.length}) 都存在`, 'success');
+            } else {
+                addResult(`⚠️ 部分UI元素缺失 (${found}/${elements.length})`, 'warning');
+            }
+        }
+
+        function testMobileFeatures() {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
+            
+            if (viewport && appleMeta) {
+                addResult('✅ 移动设备元标签配置正确', 'success');
+            } else {
+                addResult('⚠️ 移动设备配置可能不完整', 'warning');
+            }
+
+            // 检查CSS媒体查询
+            fetch('./styles/main.css')
+                .then(response => response.text())
+                .then(css => {
+                    if (css.includes('@media') && css.includes('max-width')) {
+                        addResult('✅ CSS响应式设计配置正确', 'success');
+                    } else {
+                        addResult('⚠️ 可能缺少响应式CSS', 'warning');
+                    }
+                })
+                .catch(() => {
+                    addResult('❌ 无法检查CSS文件', 'error');
+                });
+        }
+
+        function runAllTests() {
+            document.getElementById('results').innerHTML = '';
+            addResult('🔄 开始运行所有测试...', 'warning');
+            
+            setTimeout(() => {
+                testModuleLoading();
+                testUIElements();
+                testMobileFeatures();
+                
+                setTimeout(() => {
+                    addResult('✅ 测试完成！如果没有错误，项目已准备好部署到GitHub Pages', 'success');
+                }, 1000);
+            }, 500);
+        }
+
+        // 页面加载时自动运行基础检查
+        window.addEventListener('load', () => {
+            addResult('📄 页面加载完成，准备进行部署前检查', 'success');
+        });
+    </script>
+</body>
+</html>
