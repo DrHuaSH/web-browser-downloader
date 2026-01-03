@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Web浏览器下载器</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div id="app">
+        <!-- 功能按钮栏 -->
+        <header class="toolbar">
+            <div class="button-group">
+                <button id="media-download-btn" class="download-btn" disabled>
+                    <span class="btn-icon">🎵</span>
+                    <span class="btn-text">音视频下载</span>
+                </button>
+                <button id="text-download-btn" class="download-btn" disabled>
+                    <span class="btn-icon">📝</span>
+                    <span class="btn-text">文本下载</span>
+                </button>
+                <button id="pdf-download-btn" class="download-btn" disabled>
+                    <span class="btn-icon">📄</span>
+                    <span class="btn-text">PDF下载</span>
+                </button>
+            </div>
+            <div class="status-indicator">
+                <span id="status-text">就绪</span>
+            </div>
+        </header>
+
+        <!-- 浏览器界面 -->
+        <main class="browser-container">
+            <!-- 地址栏 -->
+            <div class="address-bar">
+                <input 
+                    type="url" 
+                    id="url-input" 
+                    placeholder="输入网址 (例如: https://example.com)"
+                    autocomplete="url"
+                >
+                <button id="go-btn" class="go-button">访问</button>
+                <button id="refresh-btn" class="refresh-button">🔄</button>
+            </div>
+
+            <!-- 浏览区域 -->
+            <div class="browser-frame">
+                <iframe 
+                    id="browser-iframe" 
+                    src="about:blank"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+                    loading="lazy">
+                </iframe>
+                <div id="loading-overlay" class="loading-overlay hidden">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">正在加载...</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 下载进度面板 -->
+        <div id="download-panel" class="download-panel hidden">
+            <div class="panel-header">
+                <h3>下载管理</h3>
+                <button id="close-panel-btn" class="close-btn">×</button>
+            </div>
+            <div id="download-list" class="download-list">
+                <!-- 下载项目将动态添加到这里 -->
+            </div>
+        </div>
+
+        <!-- 错误提示 -->
+        <div id="error-toast" class="error-toast hidden">
+            <div class="toast-content">
+                <span class="toast-icon">⚠️</span>
+                <span id="error-message" class="toast-message"></span>
+                <button id="close-toast-btn" class="toast-close">×</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript模块 -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

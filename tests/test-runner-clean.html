@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web浏览器下载器 - 测试运行器</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+        .test-runner {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            font-family: monospace;
+        }
+        
+        .test-controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .test-output {
+            background: #000;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 6px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .test-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .test-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .stat-total { background: #17a2b8; color: white; }
+        .stat-passed { background: #28a745; color: white; }
+        .stat-failed { background: #dc3545; color: white; }
+        
+        .hidden-app {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-runner">
+        <h1>Web浏览器下载器 - 测试运行器</h1>
+        
+        <div class="test-controls">
+            <h2>测试控制</h2>
+            <button id="run-structure-tests" class="test-button">运行项目结构测试</button>
+            <button id="run-security-tests" class="test-button">运行安全管理器测试</button>
+            <button id="run-proxy-tests" class="test-button">运行代理服务测试</button>
+            <button id="run-mobile-tests" class="test-button">运行移动适配测试</button>
+            <button id="run-browser-tests" class="test-button">运行浏览器引擎测试</button>
+            <button id="run-ui-tests" class="test-button">运行UI控制器测试</button>
+            <button id="run-integration-tests" class="test-button">运行集成检查点测试</button>
+            <button id="run-content-tests" class="test-button">运行内容检测器测试</button>
+            <button id="run-download-tests" class="test-button">运行下载管理器测试</button>
+            <button id="run-button-tests" class="test-button">运行按钮状态测试</button>
+            <button id="run-ui-interaction-tests" class="test-button">运行界面交互测试</button>
+            <button id="run-error-handler-tests" class="test-button">运行错误处理测试</button>
+            <button id="run-final-integration-tests" class="test-button">运行最终集成测试</button>
+            <button id="run-all-tests" class="test-button">运行所有测试</button>
+            <button id="clear-output" class="test-button">清空输出</button>
+            
+            <div class="test-stats">
+                <div class="stat-item stat-total">总计: <span id="total-tests">0</span></div>
+                <div class="stat-item stat-passed">通过: <span id="passed-tests">0</span></div>
+                <div class="stat-item stat-failed">失败: <span id="failed-tests">0</span></div>
+            </div>
+        </div>
+        
+        <div class="test-output" id="test-output">
+            <div>测试输出将显示在这里...</div>
+            <div>点击上方按钮开始运行测试。</div>
+        </div>
+    </div>
+
+    <!-- 隐藏的应用实例用于测试 -->
+    <div class="hidden-app">
+        <div id="app">
+            <!-- 功能按钮栏 -->
+            <header class="toolbar">
+                <div class="button-group">
+                    <button id="media-download-btn" class="download-btn" disabled>
+                        <span class="btn-icon">🎵</span>
+                        <span class="btn-text">音视频下载</span>
+                    </button>
+                    <button id="text-download-btn" class="download-btn" disabled>
+                        <span class="btn-icon">📝</span>
+                        <span class="btn-text">文本下载</span>
+                    </button>
+                    <button id="pdf-download-btn" class="download-btn" disabled>
+                        <span class="btn-icon">📄</span>
+                        <span class="btn-text">PDF下载</span>
+                    </button>
+                </div>
+                <div class="status-indicator">
+                    <span id="status-text">就绪</span>
+                </div>
+            </header>
+
+            <!-- 浏览器界面 -->
+            <main class="browser-container">
+                <!-- 地址栏 -->
+                <div class="address-bar">
+                    <input 
+                        type="url" 
+                        id="url-input" 
+                        placeholder="输入网址 (例如: https://example.com)"
+                        autocomplete="url"
+                    >
+                    <button id="go-btn" class="go-button">访问</button>
+                    <button id="refresh-btn" class="refresh-button">🔄</button>
+                </div>
+
+                <!-- 浏览区域 -->
+                <div class="browser-frame">
+                    <iframe 
+                        id="browser-iframe" 
+                        src="about:blank"
+                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+                        loading="lazy">
+                    </iframe>
+                    <div id="loading-overlay" class="loading-overlay hidden">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">正在加载...</div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- 下载进度面板 -->
+            <div id="download-panel" class="download-panel hidden">
+                <div class="panel-header">
+                    <h3>下载管理</h3>
+                    <button id="close-panel-btn" class="close-btn">×</button>
+                </div>
+                <div id="download-list" class="download-list">
+                    <!-- 下载项目将动态添加到这里 -->
+                </div>
+            </div>
+
+            <!-- 错误提示 -->
+            <div id="error-toast" class="error-toast hidden">
+                <div class="toast-content">
+                    <span class="toast-icon">⚠️</span>
+                    <span id="error-message" class="toast-message"></span>
+                    <button id="close-toast-btn" class="toast-close">×</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 测试框架和测试文件 -->
+    <script src="test-framework.js"></script>
+    <script src="project-structure.test.js"></script>
+    <script type="module" src="security-manager.test.js"></script>
+    <script type="module" src="proxy-service.test.js"></script>
+    <script type="module" src="mobile-adaptation.test.js"></script>
+    <script type="module" src="browser-engine.test.js"></script>
+    <script type="module" src="ui-controller.test.js"></script>
+    <script type="module" src="integration-checkpoint.test.js"></script>
+    <script type="module" src="content-detector.test.js"></script>
+    <script type="module" src="download-manager.test.js"></script>
+    <script type="module" src="button-state.test.js"></script>
+    <script type="module" src="ui-interaction.test.js"></script>
+    <script type="module" src="error-handler.test.js"></script>
+    <script type="module" src="final-integration.test.js"></script>
+    
+    <script>
+        // 测试运行器逻辑
+        class TestRunner {
+            constructor() {
+                this.output = document.getElementById('test-output');
+                this.totalTests = document.getElementById('total-tests');
+                this.passedTests = document.getElementById('passed-tests');
+                this.failedTests = document.getElementById('failed-tests');
+                
+                this.setupEventListeners();
+                this.redirectConsole();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('run-structure-tests').addEventListener('click', () => {
+                    this.runStructureTests();
+                });
+                
+                document.getElementById('run-security-tests').addEventListener('click', () => {
+                    this.runSecurityTests();
+                });
+                
+                document.getElementById('run-proxy-tests').addEventListener('click', () => {
+                    this.runProxyTests();
+                });
+                
+                document.getElementById('run-mobile-tests').addEventListener('click', () => {
+                    this.runMobileTests();
+                });
+                
+                document.getElementById('run-browser-tests').addEventListener('click', () => {
+                    this.runBrowserTests();
+                });
+                
+                document.getElementById('run-ui-tests').addEventListener('click', () => {
+                    this.runUITests();
+                });
+                
+                document.getElementById('run-integration-tests').addEventListener('click', () => {
+                    this.runIntegrationTests();
+                });
+                
+                document.getElementById('run-content-tests').addEventListener('click', () => {
+                    this.runContentTests();
+                });
+                
+                document.getElementById('run-download-tests').addEventListener('click', () => {
+                    this.runDownloadTests();
+                });
+                
+                document.getElementById('run-button-tests').addEventListener('click', () => {
+                    this.runButtonTests();
+                });
+                
+                document.getElementById('run-ui-interaction-tests').addEventListener('click', () => {
+                    this.runUIInteractionTests();
+                });
+                
+                document.getElementById('run-error-handler-tests').addEventListener('click', () => {
+                    this.runErrorHandlerTests();
+                });
+                
+                document.getElementById('run-final-integration-tests').addEventListener('click', () => {
+                    this.runFinalIntegrationTests();
+                });
+                
+                document.getElementById('run-all-tests').addEventListener('click', () => {
+                    this.runAllTests();
+                });
+                
+                document.getElementById('clear-output').addEventListener('click', () => {
+                    this.clearOutput();
+                });
+            }
+            
+            redirectConsole() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                
+                console.log = (...args) => {
+                    this.appendOutput(args.join(' '), 'log');
+                    originalLog.apply(console, args);
+                };
+                
+                console.error = (...args) => {
+                    this.appendOutput(args.join(' '), 'error');
+                    originalError.apply(console, args);
+                };
+            }
+            
+            appendOutput(text, type = 'log') {
+                const div = document.createElement('div');
+                div.textContent = text;
+                
+                if (type === 'error') {
+                    div.style.color = '#ff6b6b';
+                } else if (text.includes('✅')) {
+                    div.style.color = '#51cf66';
+                } else if (text.includes('❌')) {
+                    div.style.color = '#ff6b6b';
+                } else if (text.includes('=')) {
+                    div.style.color = '#74c0fc';
+                }
+                
+                this.output.appendChild(div);
+                this.output.scrollTop = this.output.scrollHeight;
+            }
+            
+            updateStats(results) {
+                this.totalTests.textContent = results.total;
+                this.passedTests.textContent = results.passed;
+                this.failedTests.textContent = results.failed;
+            }
+            
+            async wait(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            async runStructureTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行项目结构测试...', 'log');
+                
+                try {
+                    const results = await projectStructureTests.runTests();
+                    this.updateStats(results);
+                    
+                    if (results.failed === 0) {
+                        this.appendOutput('🎉 所有项目结构测试通过！', 'log');
+                    } else {
+                        this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runSecurityTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行安全管理器测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof securityManagerTests === 'undefined') {
+                        this.appendOutput('等待安全管理器测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof securityManagerTests !== 'undefined') {
+                        const results = await securityManagerTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有安全管理器测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 安全管理器测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runProxyTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行代理服务测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof proxyServiceTests === 'undefined') {
+                        this.appendOutput('等待代理服务测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof proxyServiceTests !== 'undefined') {
+                        const results = await proxyServiceTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有代理服务测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 代理服务测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runMobileTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行移动适配测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof mobileAdaptationTests === 'undefined') {
+                        this.appendOutput('等待移动适配测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof mobileAdaptationTests !== 'undefined') {
+                        const results = await mobileAdaptationTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有移动适配测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 移动适配测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runBrowserTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行浏览器引擎测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof browserEngineTests === 'undefined') {
+                        this.appendOutput('等待浏览器引擎测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof browserEngineTests !== 'undefined') {
+                        const results = await browserEngineTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有浏览器引擎测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 浏览器引擎测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runUITests() {
+                this.clearOutput();
+                this.appendOutput('开始运行UI控制器测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof uiControllerTests === 'undefined') {
+                        this.appendOutput('等待UI控制器测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof uiControllerTests !== 'undefined') {
+                        const results = await uiControllerTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有UI控制器测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ UI控制器测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runIntegrationTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行集成检查点测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof integrationCheckpointTests === 'undefined') {
+                        this.appendOutput('等待集成检查点测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof integrationCheckpointTests !== 'undefined') {
+                        const results = await integrationCheckpointTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有集成检查点测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 集成检查点测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runContentTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行内容检测器测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof contentDetectorTests === 'undefined') {
+                        this.appendOutput('等待内容检测器测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof contentDetectorTests !== 'undefined') {
+                        const results = await contentDetectorTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有内容检测器测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 内容检测器测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runDownloadTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行下载管理器测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof downloadManagerTests === 'undefined') {
+                        this.appendOutput('等待下载管理器测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof downloadManagerTests !== 'undefined') {
+                        const results = await downloadManagerTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有下载管理器测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 下载管理器测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runButtonTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行按钮状态测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof buttonStateTests === 'undefined') {
+                        this.appendOutput('等待按钮状态测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof buttonStateTests !== 'undefined') {
+                        const results = await buttonStateTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有按钮状态测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 按钮状态测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runUIInteractionTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行界面交互测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof uiInteractionTests === 'undefined') {
+                        this.appendOutput('等待界面交互测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof uiInteractionTests !== 'undefined') {
+                        const results = await uiInteractionTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有界面交互测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 界面交互测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runErrorHandlerTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行错误处理测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof errorHandlerTests === 'undefined') {
+                        this.appendOutput('等待错误处理测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof errorHandlerTests !== 'undefined') {
+                        const results = await errorHandlerTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有错误处理测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 错误处理测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runFinalIntegrationTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行最终集成测试...', 'log');
+                
+                try {
+                    // 等待模块加载
+                    if (typeof finalIntegrationTests === 'undefined') {
+                        this.appendOutput('等待最终集成测试模块加载...', 'log');
+                        await this.wait(1000);
+                    }
+                    
+                    if (typeof finalIntegrationTests !== 'undefined') {
+                        const results = await finalIntegrationTests.runTests();
+                        this.updateStats(results);
+                        
+                        if (results.failed === 0) {
+                            this.appendOutput('🎉 所有最终集成测试通过！', 'log');
+                        } else {
+                            this.appendOutput(`⚠️ 有 ${results.failed} 个测试失败`, 'error');
+                        }
+                    } else {
+                        this.appendOutput('❌ 最终集成测试模块未加载', 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            async runAllTests() {
+                this.clearOutput();
+                this.appendOutput('开始运行所有测试...', 'log');
+                
+                try {
+                    // 运行项目结构测试
+                    const structureResults = await projectStructureTests.runTests();
+                    
+                    // 等待其他测试模块加载
+                    await this.wait(1000);
+                    
+                    let totalResults = {
+                        total: structureResults.total,
+                        passed: structureResults.passed,
+                        failed: structureResults.failed
+                    };
+                    
+                    // 运行安全管理器测试
+                    if (typeof securityManagerTests !== 'undefined') {
+                        const securityResults = await securityManagerTests.runTests();
+                        totalResults.total += securityResults.total;
+                        totalResults.passed += securityResults.passed;
+                        totalResults.failed += securityResults.failed;
+                    }
+                    
+                    // 运行代理服务测试
+                    if (typeof proxyServiceTests !== 'undefined') {
+                        const proxyResults = await proxyServiceTests.runTests();
+                        totalResults.total += proxyResults.total;
+                        totalResults.passed += proxyResults.passed;
+                        totalResults.failed += proxyResults.failed;
+                    }
+                    
+                    // 运行移动适配测试
+                    if (typeof mobileAdaptationTests !== 'undefined') {
+                        const mobileResults = await mobileAdaptationTests.runTests();
+                        totalResults.total += mobileResults.total;
+                        totalResults.passed += mobileResults.passed;
+                        totalResults.failed += mobileResults.failed;
+                    }
+                    
+                    // 运行浏览器引擎测试
+                    if (typeof browserEngineTests !== 'undefined') {
+                        const browserResults = await browserEngineTests.runTests();
+                        totalResults.total += browserResults.total;
+                        totalResults.passed += browserResults.passed;
+                        totalResults.failed += browserResults.failed;
+                    }
+                    
+                    // 运行UI控制器测试
+                    if (typeof uiControllerTests !== 'undefined') {
+                        const uiResults = await uiControllerTests.runTests();
+                        totalResults.total += uiResults.total;
+                        totalResults.passed += uiResults.passed;
+                        totalResults.failed += uiResults.failed;
+                    }
+                    
+                    // 运行集成检查点测试
+                    if (typeof integrationCheckpointTests !== 'undefined') {
+                        const integrationResults = await integrationCheckpointTests.runTests();
+                        totalResults.total += integrationResults.total;
+                        totalResults.passed += integrationResults.passed;
+                        totalResults.failed += integrationResults.failed;
+                    }
+                    
+                    // 运行内容检测器测试
+                    if (typeof contentDetectorTests !== 'undefined') {
+                        const contentResults = await contentDetectorTests.runTests();
+                        totalResults.total += contentResults.total;
+                        totalResults.passed += contentResults.passed;
+                        totalResults.failed += contentResults.failed;
+                    }
+                    
+                    // 运行下载管理器测试
+                    if (typeof downloadManagerTests !== 'undefined') {
+                        const downloadResults = await downloadManagerTests.runTests();
+                        totalResults.total += downloadResults.total;
+                        totalResults.passed += downloadResults.passed;
+                        totalResults.failed += downloadResults.failed;
+                    }
+                    
+                    // 运行按钮状态测试
+                    if (typeof buttonStateTests !== 'undefined') {
+                        const buttonResults = await buttonStateTests.runTests();
+                        totalResults.total += buttonResults.total;
+                        totalResults.passed += buttonResults.passed;
+                        totalResults.failed += buttonResults.failed;
+                    }
+                    
+                    // 运行界面交互测试
+                    if (typeof uiInteractionTests !== 'undefined') {
+                        const uiInteractionResults = await uiInteractionTests.runTests();
+                        totalResults.total += uiInteractionResults.total;
+                        totalResults.passed += uiInteractionResults.passed;
+                        totalResults.failed += uiInteractionResults.failed;
+                    }
+                    
+                    // 运行错误处理测试
+                    if (typeof errorHandlerTests !== 'undefined') {
+                        const errorHandlerResults = await errorHandlerTests.runTests();
+                        totalResults.total += errorHandlerResults.total;
+                        totalResults.passed += errorHandlerResults.passed;
+                        totalResults.failed += errorHandlerResults.failed;
+                    }
+                    
+                    // 运行最终集成测试
+                    if (typeof finalIntegrationTests !== 'undefined') {
+                        const finalIntegrationResults = await finalIntegrationTests.runTests();
+                        totalResults.total += finalIntegrationResults.total;
+                        totalResults.passed += finalIntegrationResults.passed;
+                        totalResults.failed += finalIntegrationResults.failed;
+                    }
+                    
+                    this.updateStats(totalResults);
+                    
+                    if (totalResults.failed === 0) {
+                        this.appendOutput('🎉 所有测试通过！', 'log');
+                    } else {
+                        this.appendOutput(`⚠️ 有 ${totalResults.failed} 个测试失败`, 'error');
+                    }
+                } catch (error) {
+                    this.appendOutput(`测试运行失败: ${error.message}`, 'error');
+                }
+            }
+            
+            clearOutput() {
+                this.output.innerHTML = '';
+                this.updateStats({ total: 0, passed: 0, failed: 0 });
+            }
+        }
+        
+        // 初始化测试运行器
+        document.addEventListener('DOMContentLoaded', () => {
+            new TestRunner();
+        });
+    </script>
+</body>
+</html>

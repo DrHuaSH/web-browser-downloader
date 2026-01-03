@@ -1,0 +1,524 @@
+/* 基础重置和变量 */
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --dark-color: #343a40;
+    --light-color: #f8f9fa;
+    --border-color: #dee2e6;
+    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --border-radius: 6px;
+    --transition: all 0.3s ease;
+    
+    /* 移动设备触摸目标最小尺寸 */
+    --touch-target-min: 44px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--dark-color);
+    background-color: var(--light-color);
+    overflow: hidden;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* 工具栏样式 */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+    min-height: 60px;
+}
+
+.button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.download-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    min-height: var(--touch-target-min);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.download-btn:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.download-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+}
+
+.download-btn.disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+}
+
+.download-btn.active {
+    background: var(--success-color);
+    animation: pulse 2s infinite;
+}
+
+.download-btn.active:hover {
+    background: #218838;
+}
+
+/* 按钮状态变化动画 */
+.download-btn.state-changing {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 内容数量相关的视觉反馈 */
+.download-btn.low-content {
+    border-left: 3px solid var(--warning-color);
+}
+
+.download-btn.medium-content {
+    border-left: 3px solid var(--primary-color);
+}
+
+.download-btn.high-content {
+    border-left: 3px solid var(--success-color);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* 工具栏状态指示器 */
+.toolbar.has-content {
+    border-bottom-color: var(--success-color);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+}
+
+.toolbar.no-content {
+    border-bottom-color: var(--border-color);
+    background: white;
+}
+
+.toolbar.has-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* 徽章样式增强 */
+.btn-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--danger-color);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 10px;
+    min-width: 16px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.btn-badge:empty {
+    display: none;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--dark-color);
+}
+
+/* 浏览器容器 */
+.browser-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 地址栏 */
+.address-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+#url-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 16px; /* 防止iOS缩放 */
+    outline: none;
+    transition: var(--transition);
+}
+
+#url-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.go-button, .refresh-button {
+    padding: 10px 16px;
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.go-button:hover, .refresh-button:hover {
+    background: var(--primary-hover);
+}
+
+.refresh-button {
+    font-size: 16px;
+    padding: 10px;
+}
+
+/* 浏览器框架 */
+.browser-frame {
+    flex: 1;
+    position: relative;
+    background: white;
+    overflow: hidden;
+}
+
+#browser-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+}
+
+/* 加载覆盖层 */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 16px;
+    color: var(--dark-color);
+}
+
+/* 下载面板 */
+.download-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    max-height: 70vh;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--primary-color);
+    color: white;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.download-list {
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* 错误提示 */
+.error-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--danger-color);
+    color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    z-index: 1001;
+    max-width: 400px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 8px;
+}
+
+.toast-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.toast-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 隐藏类 */
+.hidden {
+    display: none !important;
+}
+
+/* 移动设备适配 */
+@media (max-width: 768px) {
+    .toolbar {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        min-height: auto;
+    }
+    
+    .button-group {
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    
+    .download-btn {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+    
+    .btn-text {
+        display: none;
+    }
+    
+    .address-bar {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+    
+    #url-input {
+        font-size: 16px; /* 防止iOS缩放 */
+        padding: 12px;
+    }
+    
+    .go-button {
+        padding: 12px;
+        font-size: 12px;
+    }
+    
+    .download-panel {
+        width: 95%;
+        max-height: 80vh;
+    }
+    
+    .error-toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-icon {
+        font-size: 18px;
+    }
+    
+    .download-btn {
+        min-width: var(--touch-target-min);
+        padding: 12px 8px;
+    }
+    
+    .status-indicator {
+        font-size: 12px;
+    }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+    .download-btn:hover {
+        transform: none;
+    }
+    
+    .download-btn:active {
+        transform: scale(0.95);
+        background: var(--primary-hover);
+    }
+    
+    .go-button:active, .refresh-button:active {
+        transform: scale(0.95);
+    }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000;
+        --shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .download-btn:disabled {
+        opacity: 0.8;
+        border: 1px solid #000;
+    }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
