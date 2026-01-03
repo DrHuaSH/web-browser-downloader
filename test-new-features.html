@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新功能测试指南</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #f8f9fa;
+        }
+        .feature-card {
+            background: white;
+            padding: 24px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #007acc;
+        }
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #007acc;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .test-steps {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
+        .test-input {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            margin: 4px 0;
+            display: inline-block;
+        }
+        .expected-result {
+            background: #e8f5e8;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #28a745;
+            margin: 8px 0;
+        }
+        .status-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 14px;
+            margin: 4px;
+        }
+        .status-available { background: #d4edda; color: #155724; }
+        .status-unavailable { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-checking { background: #d1ecf1; color: #0c5460; }
+        
+        .version-demo {
+            background: #007acc;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Web浏览器下载器 v2.0.0 - 新功能测试指南</h1>
+    
+    <div class="feature-card">
+        <div class="feature-title">
+            ✨ 功能1: 版本号显示
+        </div>
+        <p>在右上角状态栏显示当前版本号</p>
+        
+        <div class="test-steps">
+            <h4>测试步骤：</h4>
+            <ol>
+                <li>打开主应用页面</li>
+                <li>查看右上角状态栏</li>
+                <li>确认显示版本号 <span class="version-demo">v2.0.0</span></li>
+            </ol>
+        </div>
+        
+        <div class="expected-result">
+            <strong>预期结果：</strong> 右上角应该显示蓝色的版本标签 "v2.0.0"
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-title">
+            ⌨️ 功能2: 回车键导航
+        </div>
+        <p>在地址栏输入网址后按回车键即可访问，无需点击"访问"按钮</p>
+        
+        <div class="test-steps">
+            <h4>测试步骤：</h4>
+            <ol>
+                <li>在地址栏输入：<span class="test-input">httpbin.org</span></li>
+                <li>按 <kbd>Enter</kbd> 键</li>
+                <li>观察是否自动开始加载</li>
+            </ol>
+        </div>
+        
+        <div class="expected-result">
+            <strong>预期结果：</strong> 按回车键后应该自动开始加载网页，无需点击访问按钮
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-title">
+            🔗 功能3: 智能URL补全
+        </div>
+        <p>自动补全网址，支持多种输入格式</p>
+        
+        <div class="test-steps">
+            <h4>测试用例：</h4>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 8px; border: 1px solid #ddd;">输入</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">自动补全为</th>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><span class="test-input">google</span></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">https://www.google.com</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><span class="test-input">example.com</span></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">https://www.example.com</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><span class="test-input">httpbin.org</span></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">https://httpbin.org</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><span class="test-input">localhost:3000</span></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">http://localhost:3000</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="expected-result">
+            <strong>预期结果：</strong> 地址栏应该显示补全后的完整URL，并且能够正确访问
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-title">
+            🌐 功能4: 代理状态显示
+        </div>
+        <p>实时显示代理服务状态，自动切换直通模式</p>
+        
+        <div class="test-steps">
+            <h4>状态说明：</h4>
+            <div style="margin: 12px 0;">
+                <div class="status-demo status-checking">🔄 检查中</div> - 正在检测代理服务状态
+            </div>
+            <div style="margin: 12px 0;">
+                <div class="status-demo status-available">🟢 代理可用</div> - 代理服务正常，可访问所有网站
+            </div>
+            <div style="margin: 12px 0;">
+                <div class="status-demo status-unavailable">🟡 直通模式</div> - 代理不可用，使用直接连接
+            </div>
+            <div style="margin: 12px 0;">
+                <div class="status-demo status-error">🔴 代理错误</div> - 代理服务出现错误
+            </div>
+        </div>
+        
+        <div class="test-steps">
+            <h4>测试步骤：</h4>
+            <ol>
+                <li>观察右上角的代理状态图标</li>
+                <li>将鼠标悬停在图标上查看详细信息</li>
+                <li>尝试访问不同网站，观察状态变化</li>
+            </ol>
+        </div>
+        
+        <div class="expected-result">
+            <strong>预期结果：</strong> 代理状态应该实时更新，鼠标悬停时显示详细说明
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-title">
+            📋 综合测试流程
+        </div>
+        
+        <div class="test-steps">
+            <h4>完整测试步骤：</h4>
+            <ol>
+                <li><strong>检查界面</strong>
+                    <ul>
+                        <li>确认右上角显示版本号</li>
+                        <li>确认显示代理状态图标</li>
+                    </ul>
+                </li>
+                <li><strong>测试URL补全</strong>
+                    <ul>
+                        <li>输入 "httpbin" 并按回车</li>
+                        <li>观察是否补全为 "https://www.httpbin.com"</li>
+                        <li>输入 "httpbin.org" 并按回车</li>
+                        <li>观察是否补全为 "https://httpbin.org"</li>
+                    </ul>
+                </li>
+                <li><strong>测试回车导航</strong>
+                    <ul>
+                        <li>在地址栏输入网址</li>
+                        <li>按回车键而不是点击访问按钮</li>
+                        <li>确认能够正常导航</li>
+                    </ul>
+                </li>
+                <li><strong>观察代理状态</strong>
+                    <ul>
+                        <li>查看代理状态图标的变化</li>
+                        <li>尝试访问不同类型的网站</li>
+                        <li>观察状态是否正确反映</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-title">
+            🐛 故障排除
+        </div>
+        
+        <div class="test-steps">
+            <h4>如果功能不正常：</h4>
+            <ul>
+                <li>按 F12 打开开发者工具查看控制台错误</li>
+                <li>确认浏览器支持现代JavaScript特性</li>
+                <li>尝试强制刷新页面 (Ctrl+F5)</li>
+                <li>检查网络连接是否正常</li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <button onclick="window.open('index.html', '_blank')" style="
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        ">
+            🚀 打开应用开始测试
+        </button>
+    </div>
+</body>
+</html>
