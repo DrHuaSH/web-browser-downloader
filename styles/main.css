@@ -197,21 +197,18 @@ body {
     font-weight: 500;
 }
 
-.proxy-status {
+.connection-status {
     font-size: 16px;
     cursor: help;
     transition: var(--transition);
-}
-
-.proxy-status.available {
     color: var(--success-color);
 }
 
-.proxy-status.unavailable {
-    color: var(--warning-color);
+.connection-status.online {
+    color: var(--success-color);
 }
 
-.proxy-status.error {
+.connection-status.offline {
     color: var(--danger-color);
 }
 

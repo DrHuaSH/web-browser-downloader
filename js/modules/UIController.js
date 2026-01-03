@@ -38,9 +38,11 @@ export class UIController {
             if (event.type === 'network-loss') {
                 this.showError('网络连接已断开，请检查网络设置');
                 this.updateStatus('网络断开');
+                this.updateConnectionStatus('offline', '网络连接已断开');
             } else if (event.type === 'network-restore') {
                 this.hideError();
                 this.updateStatus('网络已恢复');
+                this.updateConnectionStatus('online');
             }
         });
 
@@ -567,40 +569,31 @@ export class UIController {
     }
 
     /**
-     * 更新代理状态
-     * @param {string} status - 代理状态 ('checking', 'available', 'unavailable', 'error')
+     * 更新连接状态
+     * @param {string} status - 连接状态 ('online', 'offline')
      * @param {string} message - 状态消息
      */
-    updateProxyStatus(status, message = '') {
-        const proxyElement = document.getElementById('proxy-status');
-        if (!proxyElement) return;
+    updateConnectionStatus(status, message = '') {
+        const connectionElement = document.getElementById('connection-status');
+        if (!connectionElement) return;
 
         // 清除所有状态类
-        proxyElement.classList.remove('available', 'unavailable', 'error');
+        connectionElement.classList.remove('online', 'offline');
         
         switch (status) {
-            case 'checking':
-                proxyElement.textContent = '🔄';
-                proxyElement.title = '正在检查代理状态...';
+            case 'online':
+                connectionElement.textContent = '🌐';
+                connectionElement.classList.add('online');
+                connectionElement.title = '直通模式 - 直接连接到网站';
                 break;
-            case 'available':
-                proxyElement.textContent = '🟢';
-                proxyElement.classList.add('available');
-                proxyElement.title = '代理服务可用 - 可访问所有网站';
-                break;
-            case 'unavailable':
-                proxyElement.textContent = '🟡';
-                proxyElement.classList.add('unavailable');
-                proxyElement.title = '代理服务不可用 - 直通模式（部分网站可能无法访问）';
-                break;
-            case 'error':
-                proxyElement.textContent = '🔴';
-                proxyElement.classList.add('error');
-                proxyElement.title = '代理服务错误 - ' + (message || '请检查网络连接');
+            case 'offline':
+                connectionElement.textContent = '📡';
+                connectionElement.classList.add('offline');
+                connectionElement.title = '离线模式 - ' + (message || '请检查网络连接');
                 break;
             default:
-                proxyElement.textContent = '❓';
-                proxyElement.title = '代理状态未知';
+                connectionElement.textContent = '❓';
+                connectionElement.title = '连接状态未知';
         }
     }
 

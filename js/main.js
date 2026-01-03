@@ -35,16 +35,7 @@ class WebBrowserDownloader {
             // 初始化各个组件（按依赖顺序）
             this.components.securityManager = new SecurityManager();
             this.components.mobileManager = new MobileAdaptationManager();
-            
-            // 尝试初始化代理服务，如果失败则继续（某些功能可能受限）
-            try {
-                this.components.proxyService = new ProxyService(this.components.securityManager);
-            } catch (error) {
-                console.warn('代理服务初始化失败，将使用有限功能模式:', error.message);
-                this.components.proxyService = null;
-            }
-            
-            this.components.browserEngine = new BrowserEngine(this.components.proxyService, this.components.securityManager);
+            this.components.browserEngine = new BrowserEngine(null, this.components.securityManager);
             this.components.contentDetector = new ContentDetector(this.components.securityManager);
             this.components.downloadManager = new DownloadManager(this.components.mobileManager);
             this.components.uiController = new UIController();
@@ -65,10 +56,10 @@ class WebBrowserDownloader {
             console.log('Web浏览器下载器初始化完成');
 
             // 更新版本显示
-            this.components.uiController.updateVersion('v2.0.0');
+            this.components.uiController.updateVersion('v2.1.0');
 
-            // 检查并更新代理状态
-            this.updateProxyStatus();
+            // 更新连接状态
+            this.components.uiController.updateConnectionStatus('online');
 
             // 更新状态显示
             this.components.uiController.updateStatus('就绪');
@@ -142,13 +133,6 @@ class WebBrowserDownloader {
             this.components.uiController.showDownloadProgress(downloadId, progress);
         });
 
-        // 代理服务状态变化时，更新UI显示
-        if (this.components.proxyService) {
-            this.components.proxyService.onStatusChange((status, message) => {
-                this.components.uiController.updateProxyStatus(status, message);
-            });
-        }
-
         // 错误处理
         this.setupErrorHandling();
     }
@@ -161,7 +145,6 @@ class WebBrowserDownloader {
         const initializationOrder = [
             'securityManager',
             'mobileManager',
-            'proxyService', 
             'browserEngine',
             'contentDetector',
             'downloadManager',
@@ -178,13 +161,6 @@ class WebBrowserDownloader {
                     console.log(`${componentName} 初始化完成`);
                 } catch (error) {
                     console.error(`${componentName} 初始化失败:`, error);
-                    
-                    // 对于代理服务，允许初始化失败
-                    if (componentName === 'proxyService') {
-                        console.warn('代理服务初始化失败，将在有限功能模式下运行');
-                        this.components.proxyService = null;
-                        continue;
-                    }
                     
                     // 使用错误处理器处理初始化错误
                     const errorMessage = this.errorHandler.generateUserFriendlyMessage(
@@ -380,34 +356,6 @@ class WebBrowserDownloader {
         
         // 默认使用HTTPS
         return 'https://' + url;
-    }
-
-    /**
-     * 更新代理状态
-     */
-    async updateProxyStatus() {
-        if (!this.components.uiController) return;
-
-        this.components.uiController.updateProxyStatus('checking');
-
-        if (!this.components.proxyService) {
-            this.components.uiController.updateProxyStatus('unavailable', '代理服务未初始化');
-            return;
-        }
-
-        try {
-            // 检查代理服务状态
-            const stats = this.components.proxyService.getProxyStats();
-            
-            if (stats.availableServices > 0) {
-                this.components.uiController.updateProxyStatus('available');
-            } else {
-                this.components.uiController.updateProxyStatus('unavailable', '所有代理服务不可用');
-            }
-        } catch (error) {
-            console.error('代理状态检查失败:', error);
-            this.components.uiController.updateProxyStatus('error', error.message);
-        }
     }
 
     /**

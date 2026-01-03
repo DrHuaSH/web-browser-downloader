@@ -3,7 +3,6 @@
  */
 export class BrowserEngine {
     constructor(proxyService, securityManager) {
-        this.proxyService = proxyService;
         this.securityManager = securityManager;
         this.currentURL = 'about:blank';
         this.pageChangeCallbacks = [];
@@ -176,7 +175,7 @@ export class BrowserEngine {
                 }
             }, this.loadTimeout);
 
-            // 首先尝试直接加载（适用于允许iframe嵌入的网站）
+            // 直接加载网站（不使用代理）
             try {
                 this.currentURL = finalUrl;
                 this.iframe.src = finalUrl;
@@ -184,12 +183,6 @@ export class BrowserEngine {
                 
                 // 等待一段时间检查是否加载成功
                 await new Promise((resolve, reject) => {
-                    const checkLoad = () => {
-                        if (!this.isLoading) {
-                            resolve();
-                        }
-                    };
-                    
                     // 监听iframe加载事件
                     const onLoad = () => {
                         this.iframe.removeEventListener('load', onLoad);
@@ -202,7 +195,7 @@ export class BrowserEngine {
                         this.iframe.removeEventListener('load', onLoad);
                         this.iframe.removeEventListener('error', onError);
                         clearTimeout(checkTimeout);
-                        reject(new Error('直接加载失败'));
+                        reject(new Error('页面加载失败'));
                     };
                     
                     const checkTimeout = setTimeout(() => {
@@ -216,23 +209,9 @@ export class BrowserEngine {
                 });
                 
             } catch (directLoadError) {
-                console.log('直接加载失败，尝试使用代理:', directLoadError.message);
-                
-                // 如果直接加载失败，尝试使用代理
-                try {
-                    if (this.needsProxy(finalUrl)) {
-                        const proxyUrl = await this.proxyService.buildSecureProxyURL(finalUrl);
-                        this.currentURL = finalUrl; // 保存原始URL
-                        this.iframe.src = proxyUrl;
-                        console.log('通过代理加载URL:', finalUrl, '->', proxyUrl);
-                    } else {
-                        throw directLoadError;
-                    }
-                } catch (proxyError) {
-                    console.error('代理加载也失败:', proxyError.message);
-                    // 如果代理也失败，显示一个简单的错误页面
-                    this.showErrorPage(finalUrl, '无法加载此页面。可能的原因：\n1. 网站不允许在iframe中显示\n2. 网络连接问题\n3. 代理服务不可用');
-                }
+                console.log('直接加载失败:', directLoadError.message);
+                // 显示友好的错误页面
+                this.showErrorPage(finalUrl, '无法加载此页面。可能的原因：\n1. 网站不允许在iframe中显示\n2. 网络连接问题\n3. 网站服务器无响应');
             }
 
             // 添加到历史记录
@@ -281,42 +260,6 @@ export class BrowserEngine {
             return cleanUrl;
         } catch (error) {
             throw new Error('无效的URL格式: ' + error.message);
-        }
-    }
-
-    /**
-     * 检查是否需要代理
-     * @param {string} url - URL
-     * @returns {boolean} 是否需要代理
-     */
-    needsProxy(url) {
-        // 如果没有代理服务，不使用代理
-        if (!this.proxyService) {
-            return false;
-        }
-        
-        try {
-            const urlObj = new URL(url);
-            const currentOrigin = window.location.origin;
-            const targetOrigin = urlObj.origin;
-            
-            // 如果是同源请求，不需要代理
-            if (targetOrigin === currentOrigin) {
-                return false;
-            }
-            
-            // 如果是localhost或本地IP，不需要代理
-            if (urlObj.hostname === 'localhost' || 
-                urlObj.hostname.startsWith('127.') || 
-                urlObj.hostname.startsWith('192.168.') ||
-                urlObj.hostname.startsWith('10.')) {
-                return false;
-            }
-            
-            // 其他情况需要代理
-            return true;
-        } catch (error) {
-            return false; // 出错时不使用代理
         }
     }
 
@@ -728,8 +671,9 @@ export class BrowserEngine {
                                 <br>• https://httpbin.org
                                 <br>• https://jsonplaceholder.typicode.com
                             </li>
-                            <li>某些网站可能不允许在iframe中显示</li>
+                            <li>许多网站不允许在iframe中显示（这是正常的安全措施）</li>
                             <li>如果是HTTP网站，请尝试HTTPS版本</li>
+                            <li>本应用使用直通模式，无需代理服务</li>
                         </ul>
                     </div>
                 </div>
