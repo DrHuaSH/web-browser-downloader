@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iframe 加载诊断工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .iframe-container {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .test-url {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        .test-url:hover {
+            background: #e3f2fd;
+        }
+        .result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005a9e; }
+    </style>
+</head>
+<body>
+    <h1>🔍 iframe 加载诊断工具</h1>
+    
+    <div class="test-section">
+        <h3>问题分析</h3>
+        <p>现代浏览器有严格的安全策略，大多数网站都设置了以下限制：</p>
+        <ul>
+            <li><strong>X-Frame-Options: DENY/SAMEORIGIN</strong> - 禁止在iframe中加载</li>
+            <li><strong>Content Security Policy (CSP)</strong> - 限制iframe嵌入</li>
+            <li><strong>HTTPS混合内容</strong> - HTTPS页面不能加载HTTP内容</li>
+            <li><strong>CORS策略</strong> - 跨域资源共享限制</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>测试不同网站的iframe兼容性</h3>
+        <p>点击下面的URL测试是否能在iframe中加载：</p>
+        
+        <div class="test-url" onclick="testIframe('https://httpbin.org/html')">
+            https://httpbin.org/html (应该可以加载)
+        </div>
+        
+        <div class="test-url" onclick="testIframe('https://www.example.com')">
+            https://www.example.com (应该可以加载)
+        </div>
+        
+        <div class="test-url" onclick="testIframe('https://jsonplaceholder.typicode.com')">
+            https://jsonplaceholder.typicode.com (应该可以加载)
+        </div>
+        
+        <div class="test-url" onclick="testIframe('https://www.google.com')">
+            https://www.google.com (可能被阻止)
+        </div>
+        
+        <div class="test-url" onclick="testIframe('https://www.github.com')">
+            https://www.github.com (可能被阻止)
+        </div>
+        
+        <div class="test-url" onclick="testIframe('https://www.youtube.com')">
+            https://www.youtube.com (可能被阻止)
+        </div>
+        
+        <div class="iframe-container">
+            <iframe id="test-iframe" src="about:blank"></iframe>
+        </div>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>解决方案建议</h3>
+        <div class="result warning">
+            <strong>现实情况：</strong>大多数主流网站（Google、Facebook、YouTube、GitHub等）都禁止iframe嵌入，这是正常的安全措施。
+        </div>
+        
+        <h4>可行的替代方案：</h4>
+        <ol>
+            <li><strong>新窗口打开</strong> - 在新标签页中打开网站</li>
+            <li><strong>网站预览</strong> - 显示网站截图和基本信息</li>
+            <li><strong>内容提取</strong> - 提取网站的文本内容显示</li>
+            <li><strong>书签管理</strong> - 保存和管理网站链接</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>技术检测</h3>
+        <button onclick="checkBrowserSupport()">检测浏览器支持</button>
+        <button onclick="checkSecurityPolicies()">检测安全策略</button>
+        <button onclick="testCORS()">测试CORS</button>
+        
+        <div id="tech-results"></div>
+    </div>
+
+    <script>
+        function testIframe(url) {
+            const iframe = document.getElementById('test-iframe');
+            const results = document.getElementById('test-results');
+            
+            // 清除之前的结果
+            results.innerHTML = '<div class="result warning">正在测试: ' + url + '</div>';
+            
+            // 设置超时检测
+            let loaded = false;
+            const timeout = setTimeout(() => {
+                if (!loaded) {
+                    results.innerHTML += '<div class="result error">❌ 加载超时或被阻止: ' + url + '</div>';
+                }
+            }, 5000);
+            
+            // 监听加载事件
+            iframe.onload = function() {
+                loaded = true;
+                clearTimeout(timeout);
+                
+                try {
+                    // 尝试访问iframe内容
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    if (iframeDoc && iframeDoc.body) {
+                        results.innerHTML += '<div class="result success">✅ 成功加载: ' + url + '</div>';
+                    } else {
+                        results.innerHTML += '<div class="result warning">⚠️ 加载但无法访问内容: ' + url + '</div>';
+                    }
+                } catch (e) {
+                    results.innerHTML += '<div class="result warning">⚠️ 加载但跨域限制: ' + url + '</div>';
+                }
+            };
+            
+            iframe.onerror = function() {
+                loaded = true;
+                clearTimeout(timeout);
+                results.innerHTML += '<div class="result error">❌ 加载失败: ' + url + '</div>';
+            };
+            
+            // 开始加载
+            iframe.src = url;
+        }
+        
+        function checkBrowserSupport() {
+            const results = document.getElementById('tech-results');
+            let report = '<h4>浏览器支持检测：</h4>';
+            
+            // 检测各种API支持
+            report += '<div class="result ' + (window.fetch ? 'success' : 'error') + '">Fetch API: ' + (window.fetch ? '✅ 支持' : '❌ 不支持') + '</div>';
+            report += '<div class="result ' + (window.URL ? 'success' : 'error') + '">URL API: ' + (window.URL ? '✅ 支持' : '❌ 不支持') + '</div>';
+            report += '<div class="result ' + (window.postMessage ? 'success' : 'error') + '">PostMessage: ' + (window.postMessage ? '✅ 支持' : '❌ 不支持') + '</div>';
+            
+            // 检测安全上下文
+            report += '<div class="result ' + (window.isSecureContext ? 'success' : 'warning') + '">安全上下文: ' + (window.isSecureContext ? '✅ HTTPS' : '⚠️ HTTP') + '</div>';
+            
+            results.innerHTML = report;
+        }
+        
+        function checkSecurityPolicies() {
+            const results = document.getElementById('tech-results');
+            let report = '<h4>安全策略检测：</h4>';
+            
+            // 检测CSP
+            const metaTags = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+            report += '<div class="result ' + (metaTags.length > 0 ? 'warning' : 'success') + '">CSP策略: ' + (metaTags.length > 0 ? '⚠️ 已设置' : '✅ 未设置') + '</div>';
+            
+            // 检测当前页面协议
+            report += '<div class="result ' + (location.protocol === 'https:' ? 'success' : 'warning') + '">页面协议: ' + location.protocol + '</div>';
+            
+            results.innerHTML = report;
+        }
+        
+        function testCORS() {
+            const results = document.getElementById('tech-results');
+            results.innerHTML = '<h4>CORS测试：</h4><div class="result warning">正在测试...</div>';
+            
+            // 测试一个已知支持CORS的API
+            fetch('https://httpbin.org/get')
+                .then(response => response.json())
+                .then(data => {
+                    results.innerHTML += '<div class="result success">✅ CORS请求成功</div>';
+                })
+                .catch(error => {
+                    results.innerHTML += '<div class="result error">❌ CORS请求失败: ' + error.message + '</div>';
+                });
+        }
+        
+        // 页面加载时自动检测
+        window.onload = function() {
+            checkBrowserSupport();
+        };
+    </script>
+</body>
+</html>

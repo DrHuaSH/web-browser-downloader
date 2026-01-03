@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web浏览器下载器 v3.0 - 新窗口模式</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .url-input:focus {
+            border-color: #007acc;
+        }
+        
+        .btn {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            background: #005a9e;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .status-bar {
+            background: #e9ecef;
+            padding: 8px 16px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .welcome-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .recent-sites {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .site-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 4px 0;
+        }
+        
+        .site-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .site-favicon {
+            width: 16px;
+            height: 16px;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <input 
+            type="url" 
+            class="url-input" 
+            id="urlInput"
+            placeholder="输入网址 (例如: google.com, github.com)"
+            list="url-suggestions"
+        >
+        <datalist id="url-suggestions">
+            <option value="https://www.google.com">
+            <option value="https://www.github.com">
+            <option value="https://www.example.com">
+            <option value="https://httpbin.org">
+            <option value="https://jsonplaceholder.typicode.com">
+            <option value="https://www.baidu.com">
+            <option value="https://www.youtube.com">
+            <option value="https://www.bilibili.com">
+        </datalist>
+        <button class="btn" id="goBtn">访问</button>
+        <button class="btn btn-secondary" id="newTabBtn">新标签页</button>
+    </div>
+    
+    <div class="status-bar">
+        <span id="statusText">就绪</span>
+        <span>v3.0.0 - 新窗口模式</span>
+    </div>
+    
+    <div class="main-content">
+        <div class="welcome-card">
+            <h1>🌐 Web浏览器下载器</h1>
+            <p>由于现代浏览器的安全限制，大多数网站无法在iframe中显示。<br>
+            本版本改为在新窗口中打开网站，提供更好的浏览体验。</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <h3>智能补全</h3>
+                    <p>自动补全网址协议和域名</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⌨️</div>
+                    <h3>快捷操作</h3>
+                    <p>支持回车键快速访问</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🆕</div>
+                    <h3>新窗口模式</h3>
+                    <p>在新标签页中打开网站</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>移动友好</h3>
+                    <p>完美适配手机和平板</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="recent-sites">
+        <h3>🕒 最近访问</h3>
+        <div id="recentSites">
+            <div class="site-item" onclick="visitSite('https://www.example.com')">
+                <img class="site-favicon" src="https://www.example.com/favicon.ico" onerror="this.style.display='none'">
+                <span>Example.com - 示例网站</span>
+            </div>
+            <div class="site-item" onclick="visitSite('https://httpbin.org')">
+                <img class="site-favicon" src="https://httpbin.org/favicon.ico" onerror="this.style.display='none'">
+                <span>HTTPBin - HTTP测试工具</span>
+            </div>
+            <div class="site-item" onclick="visitSite('https://jsonplaceholder.typicode.com')">
+                <img class="site-favicon" src="https://jsonplaceholder.typicode.com/favicon.ico" onerror="this.style.display='none'">
+                <span>JSONPlaceholder - API测试</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        class WebBrowser {
+            constructor() {
+                this.urlInput = document.getElementById('urlInput');
+                this.goBtn = document.getElementById('goBtn');
+                this.newTabBtn = document.getElementById('newTabBtn');
+                this.statusText = document.getElementById('statusText');
+                this.notification = document.getElementById('notification');
+                this.recentSites = JSON.parse(localStorage.getItem('recentSites') || '[]');
+                
+                this.init();
+            }
+            
+            init() {
+                // 事件监听
+                this.goBtn.addEventListener('click', () => this.handleGo());
+                this.newTabBtn.addEventListener('click', () => this.handleNewTab());
+                this.urlInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleGo();
+                    }
+                });
+                
+                // 输入时的智能提示
+                this.urlInput.addEventListener('input', (e) => {
+                    this.handleInputChange(e.target.value);
+                });
+                
+                this.updateStatus('就绪');
+                this.loadRecentSites();
+            }
+            
+            handleGo() {
+                const url = this.urlInput.value.trim();
+                if (!url) {
+                    this.showNotification('请输入网址', 'error');
+                    return;
+                }
+                
+                const finalUrl = this.smartUrlCompletion(url);
+                this.visitSite(finalUrl);
+            }
+            
+            handleNewTab() {
+                const url = this.urlInput.value.trim();
+                if (!url) {
+                    this.showNotification('请输入网址', 'error');
+                    return;
+                }
+                
+                const finalUrl = this.smartUrlCompletion(url);
+                this.openInNewTab(finalUrl);
+            }
+            
+            smartUrlCompletion(input) {
+                let url = input.trim();
+                
+                // 如果已经是完整的URL，直接返回
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    return url;
+                }
+                
+                // 如果包含协议但不是http/https，保持原样
+                if (url.includes('://')) {
+                    return url;
+                }
+                
+                // 如果是localhost或IP地址，使用http
+                if (url.startsWith('localhost') || 
+                    url.match(/^\d+\.\d+\.\d+\.\d+/) ||
+                    url.startsWith('127.') ||
+                    url.startsWith('192.168.') ||
+                    url.startsWith('10.')) {
+                    return 'http://' + url;
+                }
+                
+                // 如果不包含点号，可能是搜索词，添加www和.com
+                if (!url.includes('.')) {
+                    url = 'www.' + url + '.com';
+                }
+                
+                // 如果没有www但是常见域名，添加www
+                if (!url.startsWith('www.') && 
+                    (url.includes('.com') || url.includes('.org') || url.includes('.net') || 
+                     url.includes('.edu') || url.includes('.gov') || url.includes('.cn'))) {
+                    const parts = url.split('.');
+                    if (parts.length === 2) {
+                        url = 'www.' + url;
+                    }
+                }
+                
+                // 默认使用HTTPS
+                return 'https://' + url;
+            }
+            
+            visitSite(url) {
+                try {
+                    // 验证URL
+                    new URL(url);
+                    
+                    this.updateStatus('正在访问: ' + url);
+                    
+                    // 在当前窗口打开
+                    window.location.href = url;
+                    
+                    // 添加到最近访问
+                    this.addToRecent(url);
+                    
+                } catch (error) {
+                    this.showNotification('无效的网址格式', 'error');
+                    this.updateStatus('就绪');
+                }
+            }
+            
+            openInNewTab(url) {
+                try {
+                    // 验证URL
+                    new URL(url);
+                    
+                    this.updateStatus('在新标签页打开: ' + url);
+                    
+                    // 在新标签页打开
+                    const newWindow = window.open(url, '_blank');
+                    
+                    if (newWindow) {
+                        this.showNotification('已在新标签页打开', 'success');
+                        // 添加到最近访问
+                        this.addToRecent(url);
+                    } else {
+                        this.showNotification('弹窗被阻止，请允许弹窗后重试', 'warning');
+                    }
+                    
+                    setTimeout(() => {
+                        this.updateStatus('就绪');
+                    }, 2000);
+                    
+                } catch (error) {
+                    this.showNotification('无效的网址格式', 'error');
+                    this.updateStatus('就绪');
+                }
+            }
+            
+            handleInputChange(value) {
+                if (value.length > 0 && !value.includes('.') && !value.includes('://')) {
+                    this.urlInput.title = `将自动补全为: https://www.${value}.com`;
+                } else {
+                    this.urlInput.title = '';
+                }
+            }
+            
+            addToRecent(url) {
+                const site = {
+                    url: url,
+                    title: this.extractDomain(url),
+                    timestamp: Date.now()
+                };
+                
+                // 移除重复项
+                this.recentSites = this.recentSites.filter(s => s.url !== url);
+                
+                // 添加到开头
+                this.recentSites.unshift(site);
+                
+                // 限制数量
+                if (this.recentSites.length > 10) {
+                    this.recentSites = this.recentSites.slice(0, 10);
+                }
+                
+                // 保存到localStorage
+                localStorage.setItem('recentSites', JSON.stringify(this.recentSites));
+                
+                this.loadRecentSites();
+            }
+            
+            extractDomain(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return urlObj.hostname;
+                } catch {
+                    return url;
+                }
+            }
+            
+            loadRecentSites() {
+                const container = document.getElementById('recentSites');
+                
+                if (this.recentSites.length === 0) {
+                    container.innerHTML = '<p style="color: #6c757d; text-align: center;">暂无访问记录</p>';
+                    return;
+                }
+                
+                container.innerHTML = this.recentSites.map(site => `
+                    <div class="site-item" onclick="browser.visitSite('${site.url}')">
+                        <img class="site-favicon" src="${site.url}/favicon.ico" onerror="this.style.display='none'">
+                        <span>${site.title}</span>
+                    </div>
+                `).join('');
+            }
+            
+            updateStatus(status) {
+                this.statusText.textContent = status;
+            }
+            
+            showNotification(message, type = 'success') {
+                this.notification.textContent = message;
+                this.notification.className = `notification ${type} show`;
+                
+                setTimeout(() => {
+                    this.notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // 全局实例
+        const browser = new WebBrowser();
+        
+        // 全局函数供HTML调用
+        function visitSite(url) {
+            browser.visitSite(url);
+        }
+    </script>
+</body>
+</html>
