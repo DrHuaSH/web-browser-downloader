@@ -64,6 +64,12 @@ class WebBrowserDownloader {
             this.isInitialized = true;
             console.log('Web浏览器下载器初始化完成');
 
+            // 更新版本显示
+            this.components.uiController.updateVersion('v2.0.0');
+
+            // 检查并更新代理状态
+            this.updateProxyStatus();
+
             // 更新状态显示
             this.components.uiController.updateStatus('就绪');
 
@@ -135,6 +141,13 @@ class WebBrowserDownloader {
         this.components.downloadManager.onProgressUpdate((downloadId, progress) => {
             this.components.uiController.showDownloadProgress(downloadId, progress);
         });
+
+        // 代理服务状态变化时，更新UI显示
+        if (this.components.proxyService) {
+            this.components.proxyService.onStatusChange((status, message) => {
+                this.components.uiController.updateProxyStatus(status, message);
+            });
+        }
 
         // 错误处理
         this.setupErrorHandling();
@@ -209,10 +222,17 @@ class WebBrowserDownloader {
         goBtn.addEventListener('click', () => this.handleNavigation());
         refreshBtn.addEventListener('click', () => this.handleRefresh());
         
+        // 支持回车键导航
         urlInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 this.handleNavigation();
             }
+        });
+
+        // 添加输入时的智能提示
+        urlInput.addEventListener('input', (e) => {
+            this.handleUrlInputChange(e.target.value);
         });
 
         // 下载按钮
@@ -273,7 +293,7 @@ class WebBrowserDownloader {
      */
     async handleNavigation() {
         const urlInput = document.getElementById('url-input');
-        const url = urlInput.value.trim();
+        let url = urlInput.value.trim();
 
         if (!url) {
             this.components.uiController.showError('请输入有效的网址');
@@ -281,11 +301,8 @@ class WebBrowserDownloader {
         }
 
         try {
-            // 基本URL验证（更宽松）
-            let finalUrl = url;
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                finalUrl = 'https://' + url;
-            }
+            // 智能URL补全
+            let finalUrl = this.smartUrlCompletion(url);
 
             // 简单的URL格式验证
             try {
@@ -294,7 +311,7 @@ class WebBrowserDownloader {
                 throw new Error('请输入有效的网址格式');
             }
 
-            // 更新地址栏
+            // 更新地址栏显示完整URL
             urlInput.value = finalUrl;
 
             this.components.uiController.showLoading(true);
@@ -315,6 +332,96 @@ class WebBrowserDownloader {
             this.components.uiController.updateStatus('加载失败');
         } finally {
             this.components.uiController.showLoading(false);
+        }
+    }
+
+    /**
+     * 智能URL补全
+     * @param {string} input - 用户输入
+     * @returns {string} 补全后的URL
+     */
+    smartUrlCompletion(input) {
+        let url = input.trim();
+        
+        // 如果已经是完整的URL，直接返回
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+        }
+        
+        // 如果包含协议但不是http/https，保持原样
+        if (url.includes('://')) {
+            return url;
+        }
+        
+        // 如果是localhost或IP地址，使用http
+        if (url.startsWith('localhost') || 
+            url.match(/^\d+\.\d+\.\d+\.\d+/) ||
+            url.startsWith('127.') ||
+            url.startsWith('192.168.') ||
+            url.startsWith('10.')) {
+            return 'http://' + url;
+        }
+        
+        // 如果不包含点号，可能是搜索词，添加www和.com
+        if (!url.includes('.')) {
+            url = 'www.' + url + '.com';
+        }
+        
+        // 如果没有www但是常见域名，添加www
+        if (!url.startsWith('www.') && 
+            (url.includes('.com') || url.includes('.org') || url.includes('.net') || 
+             url.includes('.edu') || url.includes('.gov') || url.includes('.cn'))) {
+            // 检查是否已经有子域名
+            const parts = url.split('.');
+            if (parts.length === 2) {
+                url = 'www.' + url;
+            }
+        }
+        
+        // 默认使用HTTPS
+        return 'https://' + url;
+    }
+
+    /**
+     * 更新代理状态
+     */
+    async updateProxyStatus() {
+        if (!this.components.uiController) return;
+
+        this.components.uiController.updateProxyStatus('checking');
+
+        if (!this.components.proxyService) {
+            this.components.uiController.updateProxyStatus('unavailable', '代理服务未初始化');
+            return;
+        }
+
+        try {
+            // 检查代理服务状态
+            const stats = this.components.proxyService.getProxyStats();
+            
+            if (stats.availableServices > 0) {
+                this.components.uiController.updateProxyStatus('available');
+            } else {
+                this.components.uiController.updateProxyStatus('unavailable', '所有代理服务不可用');
+            }
+        } catch (error) {
+            console.error('代理状态检查失败:', error);
+            this.components.uiController.updateProxyStatus('error', error.message);
+        }
+    }
+
+    /**
+     * 处理URL输入变化
+     * @param {string} value - 输入值
+     */
+    handleUrlInputChange(value) {
+        // 可以在这里添加实时的URL验证或建议
+        if (value.length > 0 && !value.includes('.') && !value.includes('://')) {
+            // 为简单输入添加提示
+            const urlInput = document.getElementById('url-input');
+            if (urlInput) {
+                urlInput.title = `将自动补全为: https://www.${value}.com`;
+            }
         }
     }
 

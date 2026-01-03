@@ -556,6 +556,55 @@ export class UIController {
     }
 
     /**
+     * 更新版本显示
+     * @param {string} version - 版本号
+     */
+    updateVersion(version) {
+        const versionElement = document.getElementById('version-text');
+        if (versionElement) {
+            versionElement.textContent = version;
+        }
+    }
+
+    /**
+     * 更新代理状态
+     * @param {string} status - 代理状态 ('checking', 'available', 'unavailable', 'error')
+     * @param {string} message - 状态消息
+     */
+    updateProxyStatus(status, message = '') {
+        const proxyElement = document.getElementById('proxy-status');
+        if (!proxyElement) return;
+
+        // 清除所有状态类
+        proxyElement.classList.remove('available', 'unavailable', 'error');
+        
+        switch (status) {
+            case 'checking':
+                proxyElement.textContent = '🔄';
+                proxyElement.title = '正在检查代理状态...';
+                break;
+            case 'available':
+                proxyElement.textContent = '🟢';
+                proxyElement.classList.add('available');
+                proxyElement.title = '代理服务可用 - 可访问所有网站';
+                break;
+            case 'unavailable':
+                proxyElement.textContent = '🟡';
+                proxyElement.classList.add('unavailable');
+                proxyElement.title = '代理服务不可用 - 直通模式（部分网站可能无法访问）';
+                break;
+            case 'error':
+                proxyElement.textContent = '🔴';
+                proxyElement.classList.add('error');
+                proxyElement.title = '代理服务错误 - ' + (message || '请检查网络连接');
+                break;
+            default:
+                proxyElement.textContent = '❓';
+                proxyElement.title = '代理状态未知';
+        }
+    }
+
+    /**
      * 显示临时通知（移动设备）
      * @param {string} message - 通知消息
      */

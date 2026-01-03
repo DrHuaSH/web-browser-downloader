@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Web浏览器下载器</title>
+    <title>Web浏览器下载器 v2.0.0-fixed</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -30,6 +30,8 @@
             </div>
             <div class="status-indicator">
                 <span id="status-text">就绪</span>
+                <span id="version-text" class="version-display">v2.0.0</span>
+                <span id="proxy-status" class="proxy-status">🔄</span>
             </div>
         </header>
 
@@ -40,9 +42,20 @@
                 <input 
                     type="url" 
                     id="url-input" 
-                    placeholder="输入网址 (例如: https://example.com)"
+                    placeholder="输入网址 (例如: example.com 或 google.com)"
                     autocomplete="url"
+                    list="url-suggestions"
                 >
+                <datalist id="url-suggestions">
+                    <option value="https://www.google.com">
+                    <option value="https://www.github.com">
+                    <option value="https://www.example.com">
+                    <option value="https://httpbin.org">
+                    <option value="https://jsonplaceholder.typicode.com">
+                    <option value="https://www.baidu.com">
+                    <option value="https://www.youtube.com">
+                    <option value="https://www.bilibili.com">
+                </datalist>
                 <button id="go-btn" class="go-button">访问</button>
                 <button id="refresh-btn" class="refresh-button">🔄</button>
             </div>

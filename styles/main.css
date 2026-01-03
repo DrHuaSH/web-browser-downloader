@@ -183,8 +183,36 @@ body {
 .status-indicator {
     display: flex;
     align-items: center;
+    gap: 12px;
     font-size: 14px;
     color: var(--dark-color);
+}
+
+.version-display {
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.proxy-status {
+    font-size: 16px;
+    cursor: help;
+    transition: var(--transition);
+}
+
+.proxy-status.available {
+    color: var(--success-color);
+}
+
+.proxy-status.unavailable {
+    color: var(--warning-color);
+}
+
+.proxy-status.error {
+    color: var(--danger-color);
 }
 
 /* 浏览器容器 */

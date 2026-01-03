@@ -136,6 +136,28 @@ export class ProxyService {
         setInterval(() => {
             this.resetRateLimits();
         }, 60 * 1000);
+
+        // 通知状态变化的回调
+        this.statusChangeCallback = null;
+    }
+
+    /**
+     * 设置状态变化回调
+     * @param {Function} callback - 状态变化回调函数
+     */
+    onStatusChange(callback) {
+        this.statusChangeCallback = callback;
+    }
+
+    /**
+     * 通知状态变化
+     * @param {string} status - 状态
+     * @param {string} message - 消息
+     */
+    notifyStatusChange(status, message = '') {
+        if (this.statusChangeCallback) {
+            this.statusChangeCallback(status, message);
+        }
     }
 
     /**
@@ -144,6 +166,8 @@ export class ProxyService {
     async performHealthCheck() {
         console.log('执行代理服务健康检查...');
         
+        let availableCount = 0;
+        
         for (const service of this.proxyServices) {
             const isHealthy = await this.testProxyConnectivity(service);
             
@@ -151,7 +175,15 @@ export class ProxyService {
                 this.recordFailure(service);
             } else {
                 this.recordSuccess(service);
+                availableCount++;
             }
+        }
+
+        // 通知状态变化
+        if (availableCount > 0) {
+            this.notifyStatusChange('available');
+        } else {
+            this.notifyStatusChange('unavailable', '所有代理服务不可用');
         }
     }
 
